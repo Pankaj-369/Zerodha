@@ -9,9 +9,7 @@ export default PrivateRoute;
 
 
 
-// const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:3002";
 
-// // Usage
 // axios.get(`${backendUrl}/api/some-endpoint`);
 // fetch(`${backendUrl}/api/other-endpoint`);
 

@@ -9,7 +9,7 @@ export default function TopBar() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch("http://localhost:3002/indices");
+        const res = await fetch(`${backendUrl}/indices`);
         const data = await res.json();
         setNifty(data.nifty);
         setSensex(data.sensex);

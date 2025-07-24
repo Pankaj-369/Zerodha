@@ -47,7 +47,7 @@ const BuyActionWindow = ({ uid, currentPrice }) => {
       };
 
       const res = await axios.post(
-        "http://localhost:3002/orders/new",
+       `${backendUrl}/orders/new`,
         orderData,
         {
           headers: {

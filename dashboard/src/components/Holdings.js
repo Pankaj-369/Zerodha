@@ -10,7 +10,7 @@ const Holdings = () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:3002/holdings", {
+      .get(`${backendUrl}/holdings`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },

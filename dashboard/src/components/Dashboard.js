@@ -2,8 +2,6 @@ import { Route, Routes } from "react-router-dom";
 
 import Funds from "./Funds";
 import Holdings from "./Holdings";
-import React, { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import StockAnalytics from "./StockAnalytics"; // new component
 
 import Orders from "./Orders";

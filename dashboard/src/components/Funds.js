@@ -16,7 +16,7 @@ const Funds = () => {
 
   const fetchFunds = async () => {
     const token = localStorage.getItem("token");
-    const res = await fetch("http://localhost:3002/funds", {
+    const res = await fetch(`${backendUrl}/funds`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -33,7 +33,7 @@ const Funds = () => {
     const token = localStorage.getItem("token");
     const route = action === "add" ? "funds/add" : "funds/withdraw";
 
-    const res = await fetch(`http://localhost:3002/${route}`, {
+    const res = await fetch(`${backendUrl}/${route}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

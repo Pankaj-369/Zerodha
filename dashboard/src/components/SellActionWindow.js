@@ -79,7 +79,7 @@ const SellActionWindow = ({
       const fetchHoldings = async () => {
         setHoldingsLoading(true);
         try {
-          const res = await axios.get("http://localhost:3002/holdings", {
+          const res = await axios.get(`${backendUrl}/holdings`, {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
@@ -135,7 +135,7 @@ const SellActionWindow = ({
           mode: "SELL", 
         };
         const res = await axios.post(
-          "http://localhost:3002/orders/new", orderData,
+          `${backendUrl}/orders/new`, orderData,
           { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
         });
         if (res.data.success) {
@@ -156,7 +156,7 @@ const SellActionWindow = ({
           mode: "SELL", orderType, symbol: uid
         };
         const res = await axios.post(
-          "http://localhost:3002/orders/new", orderData,
+          `${backendUrl}/orders/new`, orderData,
           { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
         });
         if (res.data.success) {

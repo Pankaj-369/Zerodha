@@ -8,12 +8,12 @@ const StockAnalytics = () => {
   const { symbol } = useParams();
   const navigate = useNavigate();
   const [data, setData] = useState([]);
- const [interval, setInterval] = useState("1d");       // default: daily
+ const [interval, setInterval] = useState("1d");       
 const [range, setRange] = useState("1mo");    
 
 useEffect(() => {
   axios.get(
-    `http://localhost:3002/history/${symbol}?range=${range}&interval=${interval}`
+    `${backendUrl}/history/${symbol}?range=${range}&interval=${interval}`
   )
   .then(res => setData(res.data))
   .catch(err => console.error("Chart data fetch failed", err));

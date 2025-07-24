@@ -10,7 +10,7 @@ const Orders = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await axios.get("http://localhost:3002/orders", {
+        const response = await axios.get(`${backendUrl}/orders`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`
           }

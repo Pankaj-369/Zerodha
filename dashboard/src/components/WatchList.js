@@ -21,7 +21,7 @@ const WatchList = () => {
 
   // Load watchlist initially
   useEffect(() => {
-    axios.get("http://localhost:3002/watchlist", {
+    axios.get(`${backendUrl}/watchlist`, {
       headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
     }).then((res) => setWatchlist(res.data));
   }, []);
@@ -36,7 +36,7 @@ const WatchList = () => {
       setLoadingSuggestions(true);
       try {
         const res = await axios.get(
-          `http://localhost:3002/search/symbols?q=${encodeURIComponent(searchText)}`
+          `${backendUrl}/search/symbols?q=${encodeURIComponent(searchText)}`
         );
         setSuggestions(res.data || []);
       } catch {
@@ -53,7 +53,7 @@ const WatchList = () => {
   const handleAddToWatchList = async (stock) => {
     try {
       const res = await axios.post(
-        "http://localhost:3002/watchlist/add",
+        `${backendUrl}/watchlist/add`,
         {
           symbol: stock.symbol,
           name: stock.name,
@@ -81,7 +81,7 @@ const WatchList = () => {
 
   const handleRemoveFromWatchlist = async (symbol) => {
     try {
-      await axios.delete(`http://localhost:3002/watchlist/remove`, {
+      await axios.delete(`${backendUrl}/watchlist/remove`, {
         data: { symbol },
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });

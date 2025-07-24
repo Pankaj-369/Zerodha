@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:3002";
+const loginUrl = process.env.REACT_APP_LOGIN_URL || "http://localhost:3000/login";
 
 const Menu = () => {
   const [selectedMenu, setSelectedMenu] = useState(0);
@@ -16,7 +16,7 @@ const Menu = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    window.location.href = "http://localhost:3000/login";
+    (window.location.href = loginUrl)
   };
 
   const user = JSON.parse(localStorage.getItem("user")) || {};

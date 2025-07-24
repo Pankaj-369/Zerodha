@@ -38,13 +38,13 @@ const Summary = () => {
       setLoading(true);
       
       // Fetch funds data
-      const fundsResponse = await axios.get("http://localhost:3002/funds", {
+      const fundsResponse = await axios.get(`${backendUrl}/funds`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
       });
       const { availableMargin, usedMargin, openingBalance } = fundsResponse.data;
       
       // Fetch holdings data
-      const holdingsResponse = await axios.get("http://localhost:3002/holdings", {
+      const holdingsResponse = await axios.get(`${backendUrl}/holdings`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
       });
       
