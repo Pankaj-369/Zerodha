@@ -1,13 +1,19 @@
+const loginUrl = process.env.REACT_APP_LOGIN_URL || "http://localhost:3000/login";
 
 const PrivateRoute = ({ children }) => {
   const token = localStorage.getItem("token");
-  return token ? children :    window.location.href = "http://localhost:3000/login"; ;
+  return token ? children :  (window.location.href = loginUrl); 
 };
 
 export default PrivateRoute;
 
 
 
+// const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:3002";
+
+// // Usage
+// axios.get(`${backendUrl}/api/some-endpoint`);
+// fetch(`${backendUrl}/api/other-endpoint`);
 
 
 

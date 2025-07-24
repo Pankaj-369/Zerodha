@@ -30,7 +30,6 @@ body {
   min-height: 100vh;
 }
 
-/* Sidebar - Removed quick actions */
 .sidebar {
   width: 280px;
   background: var(--card-bg);
@@ -82,7 +81,6 @@ body {
   color: var(--text-secondary);
 }
 
-/* Today's Summary - Moved to sidebar */
 .today-summary {
   background: #f8f9fa;
   padding: 20px;
@@ -120,7 +118,6 @@ body {
   color: var(--error);
 }
 
-/* Main Content */
 .main-content {
   flex: 1;
   margin-left: 25px;
@@ -200,7 +197,6 @@ body {
   color: var(--neutral);
 }
 
-/* Holdings Card */
 .holdings-card {
   background: var(--card-bg);
   border-radius: 16px;
@@ -259,7 +255,6 @@ body {
   color: var(--text-primary);
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
   .dashboard {
     flex-direction: column;
@@ -287,14 +282,12 @@ body {
   }
 }
 
-/* Loading state */
 .loading-message {
   text-align: center;
   padding: 50px;
   font-size: 1.2rem;
   color: #666;
 }
-/* Performance Chart Styles */
 .performance-chart {
   background: white;
   border-radius: 12px;

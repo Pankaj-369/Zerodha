@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import GeneralContext from "./GeneralContext";
+const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:3002";
 
 const Positions = () => {
     const [allPositions, setAllPositions] = useState([]);

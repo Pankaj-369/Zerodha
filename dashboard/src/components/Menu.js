@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:3002";
 
 const Menu = () => {
   const [selectedMenu, setSelectedMenu] = useState(0);

@@ -1,6 +1,7 @@
 import React, { useState, useContext, useEffect } from "react";
 import axios from "axios";
 import GeneralContext from "./GeneralContext";
+const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:3002";
 
 // Header section
 const ModalHeader = ({ uid, onClose }) => (

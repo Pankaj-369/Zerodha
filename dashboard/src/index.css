@@ -8,7 +8,7 @@ body {
 }
 html, body {
   height: 100vh;
-  overflow: hidden; /* This disables page (outer) scroll! */
+  overflow: hidden; 
 }
 
 code {
@@ -142,7 +142,6 @@ code {
   color: #c9c9c9;
 }
 
-/* sudo selectors */
 .btn-blue:hover {
   background: #74a7fa;
 }
@@ -248,7 +247,6 @@ code {
   color: rgb(72, 194, 55);
 }
 
-/* sudo selector */
 .item:hover {
   cursor: pointer;
 }
@@ -328,7 +326,6 @@ hr {
   font-weight: 300;
 }
 
-/* sudo selectors */
 
 .menu:hover {
   color: rgb(245, 104, 52);
@@ -490,7 +487,6 @@ hr {
   color: rgb(72, 194, 55);
 }
 
-/* sudo selector */
 .item:hover {
   cursor: pointer;
 }
@@ -645,7 +641,6 @@ hr {
   color: rgb(146, 146, 146);
 }
 
-/* sudo selectors */
 .index:hover {
   cursor: pointer;
 }
@@ -848,7 +843,6 @@ hr {
   color: rgb(105, 105, 105);
 }
 
-/* sudo selectors */
 .search:focus {
   outline: none;
 }

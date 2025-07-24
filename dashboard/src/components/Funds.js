@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:3002";
 
 const Funds = () => {
   const [funds, setFunds] = useState({

@@ -2,6 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
+const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:3002";
 
 const StockAnalytics = () => {
   const { symbol } = useParams();

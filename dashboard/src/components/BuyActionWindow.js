@@ -2,6 +2,7 @@ import React, { useState, useContext } from "react";
 import axios from "axios";
 import GeneralContext from "./GeneralContext";
 import "./BuyActionWindow.css";
+const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:3002";
 
 const BuyActionWindow = ({ uid, currentPrice }) => {
   const [stockQuantity, setStockQuantity] = useState(1);

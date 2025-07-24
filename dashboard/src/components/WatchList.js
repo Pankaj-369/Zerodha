@@ -11,6 +11,7 @@ import GeneralContext from "./GeneralContext";
 import { DoughnutChart } from "./DoughnutChart";
 import "./watchlist.css";
 import { useNavigate } from "react-router-dom";
+const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:3002";
 
 const WatchList = () => {
   const [watchlist, setWatchlist] = useState([]);

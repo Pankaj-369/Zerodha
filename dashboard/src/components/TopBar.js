@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Menu from "./Menu";
+const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:3002";
 
 export default function TopBar() {
   const [nifty, setNifty] = useState({ value: 0, change: 0 });

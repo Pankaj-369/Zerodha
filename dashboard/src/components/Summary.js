@@ -4,6 +4,7 @@ import { TrendingUp, AttachMoney, AccountBalance, ShowChart } from '@mui/icons-m
 import axios from "axios";
 import GeneralContext from "./GeneralContext";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:3002";
 
 const Summary = () => {
   const [stats, setStats] = useState({

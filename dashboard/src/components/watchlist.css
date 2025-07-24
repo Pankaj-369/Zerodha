@@ -86,11 +86,11 @@
 }
 
 .up {
-  color: #4caf50; /* soft green for % change */
+  color: #4caf50; 
 }
 
 .down {
-  color: #f44336; /* soft red for % change */
+  color: #f44336; 
 }
 
 .actions {
@@ -112,7 +112,6 @@
   opacity: 0.9;
 }
 
-/* KEEP original Buy/Sell button colors */
 .buy-btn {
   background-color: #4caf50;
 }
