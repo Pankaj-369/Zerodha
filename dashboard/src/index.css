@@ -857,7 +857,6 @@ hr {
   cursor: move;
 }
 
-/* TODO */
 .list li::before {
   content: "";
   background: transparent;

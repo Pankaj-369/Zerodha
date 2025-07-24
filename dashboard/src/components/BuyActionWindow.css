@@ -190,7 +190,6 @@
     background: #4184f3;
   }
   
-  /* sudo selectors */
   .tab button::after {
     content: "";
     width: 100%;

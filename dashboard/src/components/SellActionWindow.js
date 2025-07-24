@@ -209,7 +209,6 @@ const SellActionWindow = ({
       style={modalStyle}
     >
       <ModalHeader uid={uid} onClose={generalContext.closeSellWindow} />
-      {/* Scrollable section for all content except action buttons */}
       <form style={{ maxHeight: 370, overflowY: "auto" }} onSubmit={handleSellClick}>
         <HoldingInfo availableQty={availableQty} avgPrice={avgPrice} />
         <OrderTypeToggle orderType={orderType} setOrderType={setOrderType} currentPrice={currentPrice} />
@@ -284,7 +283,6 @@ const SellActionWindow = ({
           </div>
         )}
       </form>
-      {/* Action buttons PERSISTENT at bottom */}
       <div className="d-flex justify-content-between gap-2 mt-2">
         <button
           className="btn btn-danger flex-grow-1"

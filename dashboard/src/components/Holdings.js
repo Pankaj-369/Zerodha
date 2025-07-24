@@ -46,7 +46,7 @@ const Holdings = () => {
               <th>P&L</th>
               <th>Net chg.</th>
               <th>Day chg.</th>
-              <th></th> {/* Action column */}
+              <th></th> 
             </tr>
           </thead>
           <tbody>
@@ -77,7 +77,6 @@ const Holdings = () => {
                   <td className={profClass}>{pnl.toFixed(2)}</td>
                   <td className={netClass}>{net}</td>
                   <td className={dayClass}>{day}</td>
-                  {/* Actions Dropdown */}
                   <td style={{ minWidth: 48, textAlign: "center" }}>
                     <div className="dropdown">
                       <button

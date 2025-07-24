@@ -17,7 +17,6 @@ function Footer() {
   return (
     <div className="container border-top pt-5 mt-5">
       <div className="row text-start">
-        {/* Logo and Copyright */}
         <div className="col-md-3 mb-4">
           <img
             src="/media/images/logo.svg"

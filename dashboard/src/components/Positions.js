@@ -59,7 +59,6 @@ const Positions = () => {
                                         {pnl.toFixed(2)} ({pnlPercent.toFixed(2)}%)
                                     </td>
                                     <td className={dayClass}>{day.toFixed(2)}</td>
-                                    {/* Buy/Sell Actions Dropdown */}
                                     <td style={{ minWidth: 48, textAlign: "center" }}>
                                         <div className="dropdown">
                                             <button

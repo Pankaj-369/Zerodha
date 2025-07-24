@@ -85,7 +85,6 @@ const Summary = () => {
     return (
       <div className="dashboard">
         <div className="sidebar">
-          {/* Loading skeleton */}
         </div>
         <div className="main-content">
           <div className="loading-message">Loading dashboard data...</div>
@@ -96,7 +95,6 @@ const Summary = () => {
 
   return (
     <div className="dashboard">
-      {/* Sidebar */}
       <div className="sidebar">
         <div className="user-section">
           <div className="avatar">U</div>
@@ -107,7 +105,6 @@ const Summary = () => {
           </div>
         </div>
         
-        {/* Today's Summary */}
         <div className="today-summary">
           <h4>Today's Summary</h4>
           <div className="summary-item">
@@ -125,9 +122,7 @@ const Summary = () => {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="main-content">
-        {/* Stats Cards */}
         <div className="stats-grid">
           <div className="stat-card">
             <div className="stat-icon available">
@@ -160,7 +155,6 @@ const Summary = () => {
           </div>
         </div>
 
-        {/* NEW: Performance Trend Chart */}
         <div className="performance-chart">
           <h4>Weekly Performance Trend</h4>
           <ResponsiveContainer width="100%" height={200}>
@@ -189,7 +183,6 @@ const Summary = () => {
           </ResponsiveContainer>
         </div>
 
-        {/* Holdings Section */}
         <div className="holdings-card">
           <div className="holdings-header">
             <h3>Holdings ({stats.holdingsCount})</h3>

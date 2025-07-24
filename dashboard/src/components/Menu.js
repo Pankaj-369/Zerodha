@@ -39,7 +39,6 @@ const Menu = () => {
         gap: "40px"
       }}
     >
-      {/* Logo */}
       <div style={{ display: "flex", alignItems: "center", marginRight: "75px", height: "50px" }}>
         <img
           src="logo.png"
@@ -52,7 +51,6 @@ const Menu = () => {
         />
       </div>
 
-      {/* Navigation Links */}
       <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
         {menuItems.map((item, index) => (
           <Link
@@ -80,7 +78,6 @@ const Menu = () => {
         ))}
       </div>
 
-      {/* User Profile */}
       <div
         style={{
           display: "flex",

@@ -80,7 +80,6 @@ const Funds = () => {
       </div>
 
       <div className="row gx-5">
-        {/* Left - Equity */}
         <div className="col-md-8 mb-4">
           <div className="card shadow-sm p-4">
             <h4 className="fw-semibold mb-4">Equity</h4>
@@ -145,7 +144,6 @@ const Funds = () => {
           </div>
         </div>
 
-        {/* Right - Commodity */}
         <div className="col-md-4 mb-4">
           <div className="card shadow-sm text-center p-4">
             <p className="mb-3">You don't have a commodity account</p>
@@ -154,7 +152,6 @@ const Funds = () => {
         </div>
       </div>
 
-      {/* Modal for Add/Withdraw */}
       <div
         className="modal fade"
         id="fundModal"
