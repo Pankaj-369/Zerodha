@@ -1,21 +1,24 @@
 import React, { useState } from "react";
+
 import axios from "axios";
 import "./auth.css";
 
 import { Link, useNavigate } from "react-router-dom";
 
 const Signup = () => {
+
   const [formData, setFormData] = useState({ username: "", password: "" });
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
+  const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:3002";
 
   const handleSignup = async (e) => {
     e.preventDefault();
     try {
-      let res= await axios.post("http://localhost:3002/signup", formData);
+     let res = await axios.post(`${backendUrl}/signup`, formData);
       alert("Signup successful! Please login.");
       console.log(res);
       navigate("/login");
