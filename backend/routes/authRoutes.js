@@ -2,6 +2,7 @@ const express = require("express");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { UsersModel } = require("../model/UsersModel");
+const { WatchListModel } = require("../model/WatchListModel");
 
 const router = express.Router();
 const secret = process.env.JWT_SECRET;
@@ -13,6 +14,23 @@ router.post("/signup", async (req, res) => {
 
     const userdata = new UsersModel({ username, email, password: hashedPassword });
     await userdata.save();
+
+    const defaultWatchlist = [
+      { symbol: "RELIANCE", name: "Reliance Industries" },
+      { symbol: "TCS", name: "Tata Consultancy Services" },
+      { symbol: "HDFCBANK", name: "HDFC Bank" },
+      { symbol: "INFY", name: "Infosys Limited" },
+      { symbol: "ICICIBANK", name: "ICICI Bank" },
+      { symbol: "HINDUNILVR", name: "Hindustan Unilever" },
+      { symbol: "SBIN", name: "State Bank of India" },
+      { symbol: "KOTAKBANK", name: "Kotak Mahindra Bank" },
+    ];
+
+    const watchlistDocs = defaultWatchlist.map(item => ({
+      ...item,
+      userId: userdata._id,
+    }));
+    await WatchListModel.insertMany(watchlistDocs);
 
     res.status(201).json({ message: "User registered successfully." });
   } catch (err) {
