@@ -16,14 +16,14 @@ router.post("/signup", async (req, res) => {
     await userdata.save();
 
     const defaultWatchlist = [
-      { symbol: "RELIANCE", name: "Reliance Industries" },
-      { symbol: "TCS", name: "Tata Consultancy Services" },
-      { symbol: "HDFCBANK", name: "HDFC Bank" },
-      { symbol: "INFY", name: "Infosys Limited" },
-      { symbol: "ICICIBANK", name: "ICICI Bank" },
-      { symbol: "HINDUNILVR", name: "Hindustan Unilever" },
-      { symbol: "SBIN", name: "State Bank of India" },
-      { symbol: "KOTAKBANK", name: "Kotak Mahindra Bank" },
+      { symbol: "RELIANCE.NS", name: "Reliance Industries" },
+      { symbol: "TCS.NS", name: "Tata Consultancy Services" },
+      { symbol: "HDFCBANK.NS", name: "HDFC Bank" },
+      { symbol: "INFY.NS", name: "Infosys Limited" },
+      { symbol: "ICICIBANK.NS", name: "ICICI Bank" },
+      { symbol: "HINDUNILVR.NS", name: "Hindustan Unilever" },
+      { symbol: "SBIN.NS", name: "State Bank of India" },
+      { symbol: "KOTAKBANK.NS", name: "Kotak Mahindra Bank" },
     ];
 
     const watchlistDocs = defaultWatchlist.map(item => ({
