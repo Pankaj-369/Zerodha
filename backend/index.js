@@ -24,7 +24,8 @@ const allowedOrigins = [
   'http://localhost:3000',        
   'http://localhost:3001',        
   'https://zerodha-frontend-swjp.onrender.com',
-  'https://zerodha-dashboard-ezcd.onrender.com'
+  'https://zerodha-dashboard-ezcd.onrender.com',
+  'https://zerodha-nu-nine.vercel.app'
 ];
 
 app.use(cors({
