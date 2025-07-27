@@ -43,7 +43,7 @@ function Footer() {
             "Referral program",
           ].map((item, idx) => (
             <div key={idx}>
-              <a href="#" style={linkStyle}>
+              <a href="/" style={linkStyle}> {/* <-- real URL here */}
                 {item}
               </a>
             </div>
@@ -64,7 +64,7 @@ function Footer() {
             "Downloads",
           ].map((item, idx) => (
             <div key={idx}>
-              <a href="#" style={linkStyle}>
+              <a href="/" style={linkStyle}> {/* <-- real URL here */}
                 {item}
               </a>
             </div>
@@ -84,7 +84,7 @@ function Footer() {
             "Open source",
           ].map((item, idx) => (
             <div key={idx}>
-              <a href="#" style={linkStyle}>
+              <a href="/" style={linkStyle}> {/* <-- real URL here */}
                 {item}
               </a>
             </div>
@@ -148,7 +148,7 @@ function Footer() {
         ].map((item, idx) => (
           <a
             key={idx}
-            href="#"
+            href="/"
             style={{
               marginRight: "15px",
               color: "#007bff",
