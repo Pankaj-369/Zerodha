@@ -142,7 +142,12 @@ const BuyActionWindow = ({ uid, currentPrice }) => {
           className="form-control"
           value={stockQuantity}
           min="1"
-          onChange={(e) => setStockQuantity(Number(e.target.value))}
+           onChange={(e) => {
+    const val = e.target.value;
+    if (val === "" || Number(val) >= 1) {
+      setStockQuantity(val);
+    }
+  }}
         />
       </div>
 
