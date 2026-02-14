@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const verifyToken = require("../middleware/verifyToken");
 const { WatchListModel } = require("../model/WatchListModel");
-const yahooFinance = require("yahoo-finance2").default;
+const { fetchQuote, mapFinnhubQuote } = require("../utils/finnhubClient");
 
 const priceCache = {};
 const CACHE_DURATION = 60 * 1000;
@@ -15,12 +15,15 @@ async function getCachedQuote(symbol) {
   }
 
   try {
-    const result = await yahooFinance.quote(symbol);
+    const result = await fetchQuote(symbol);
+    const mapped = mapFinnhubQuote(result);
+
     const liveData = {
-      price: result.regularMarketPrice,
-      change: result.regularMarketChange,
-      percent: result.regularMarketChangePercent,
-      isDown: result.regularMarketChange < 0,
+      // Preserve existing UI shape while sourcing values from Finnhub fields.
+      price: mapped.currentPrice,
+      change: mapped.change,
+      percent: mapped.percent,
+      isDown: mapped.change < 0,
     };
 
     priceCache[symbol] = {

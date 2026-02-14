@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const yahooFinance = require("yahoo-finance2").default;
+const { fetchQuote, mapFinnhubQuote } = require("../utils/finnhubClient");
 
 // In-memory cache object
 const cache = {};
@@ -11,21 +11,23 @@ router.get("/live/:symbol", async (req, res) => {
   const now = Date.now();
 
   // Check if the symbol is cached and still fresh
-  if (cache[symbol] && (now - cache[symbol].timestamp < CACHE_TTL_MS)) {
-    console.log(`✅ Cache hit for ${symbol}`);
+  if (cache[symbol] && now - cache[symbol].timestamp < CACHE_TTL_MS) {
+    console.log(`Cache hit for ${symbol}`);
     return res.status(200).json(cache[symbol].data);
   }
 
   try {
-    console.log(`🌐 Fetching live data for: ${symbol}`);
-    const result = await yahooFinance.quote(symbol);
+    console.log(`Fetching live data for: ${symbol}`);
+    const result = await fetchQuote(symbol);
+    const mapped = mapFinnhubQuote(result);
 
     const data = {
-      name: result.shortName || result.symbol,
-      price: result.regularMarketPrice,
-      change: result.regularMarketChange,
-      percent: result.regularMarketChangePercent,
-      isDown: result.regularMarketChange < 0,
+      // Quote endpoint does not include long instrument names; keep stable fallback.
+      name: symbol,
+      price: mapped.currentPrice,
+      change: mapped.change,
+      percent: mapped.percent,
+      isDown: mapped.change < 0,
     };
 
     // Store the result in cache
@@ -36,7 +38,7 @@ router.get("/live/:symbol", async (req, res) => {
 
     res.status(200).json(data);
   } catch (err) {
-    console.error("❌ Yahoo Finance Error:", err);
+    console.error("Finnhub quote error:", err?.message || err);
     res.status(500).json({ error: "Failed to fetch stock data" });
   }
 });

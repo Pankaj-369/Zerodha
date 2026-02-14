@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const verifyToken = require("../middleware/verifyToken");
 const { HoldingsModel } = require("../model/HoldingsModel");
-const yahooFinance = require("yahoo-finance2").default;
+const { fetchQuote, mapFinnhubQuote } = require("../utils/finnhubClient");
 
 // In-memory cache
 const cache = {};
@@ -18,13 +18,15 @@ const getQuoteData = async (symbol) => {
   }
 
   try {
-    const quote = await yahooFinance.quote(symbol);
+    const quote = await fetchQuote(symbol);
+    const mapped = mapFinnhubQuote(quote);
 
     const data = {
-      name: quote?.shortName || symbol,
-      price: quote?.regularMarketPrice || 0,
-      net: (quote?.regularMarketChange ?? 0).toFixed(2),
-      day: (quote?.regularMarketChangePercent ?? 0).toFixed(2) + "%",
+      // Preserve existing response contract consumed by holdings UI.
+      name: symbol,
+      price: mapped.currentPrice || 0,
+      net: (mapped.change ?? 0).toFixed(2),
+      day: (mapped.percent ?? 0).toFixed(2) + "%",
     };
 
     // Save to cache
@@ -35,7 +37,7 @@ const getQuoteData = async (symbol) => {
 
     return data;
   } catch (err) {
-    console.error(`Yahoo Finance error for ${symbol}:`, err.message);
+    console.error(`Finnhub quote error for ${symbol}:`, err.message);
     return {
       name: symbol,
       price: 0,

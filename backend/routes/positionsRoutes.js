@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const verifyToken = require("../middleware/verifyToken");
 const { PositionsModel } = require("../model/PositionsModel");
-const yahooFinance = require("yahoo-finance2").default;
+const { fetchQuote, mapFinnhubQuote } = require("../utils/finnhubClient");
 
 
 router.get("/", verifyToken, async (req, res) => {
@@ -15,9 +15,10 @@ router.get("/", verifyToken, async (req, res) => {
     const enrichedPositions = await Promise.all(
       positions.map(async (pos) => {
         try {
-          const quote = await yahooFinance.quote(pos.name);
-          const LTP = quote.regularMarketPrice;
-          const prevClose = quote.regularMarketPreviousClose;
+          const quote = await fetchQuote(pos.name);
+          const mapped = mapFinnhubQuote(quote);
+          const LTP = mapped.currentPrice;
+          const prevClose = mapped.previousClose;
           const dayChange = LTP - prevClose;
           const isLoss = dayChange < 0;
 
@@ -31,7 +32,7 @@ router.get("/", verifyToken, async (req, res) => {
           console.error("Error fetching price for:", pos.name, err);
           return {
             ...pos._doc,
-            price: pos.avg,
+            LTP: pos.price,
             day: "N/A",
             isLoss: false,
           };

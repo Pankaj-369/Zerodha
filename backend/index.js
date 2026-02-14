@@ -4,10 +4,12 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 require("./squareoff.js");
-const axios = require("axios");
-
-const yahooFinance = require("yahoo-finance2").default;
-
+const {
+  fetchQuote,
+  mapFinnhubQuote,
+  searchSymbols,
+  fetchCandles,
+} = require("./utils/finnhubClient");
 
 const authRoutes = require("./routes/authRoutes");
 const fundsRoutes = require("./routes/fundsRoutes");
@@ -21,31 +23,33 @@ const PORT = process.env.PORT || 3002;
 const app = express();
 
 const allowedOrigins = [
-  'http://localhost:3000',        
-  'http://localhost:3001',        
-  'https://zerodha-frontend-swjp.onrender.com',
-  'https://zerodha-dashboard-ezcd.onrender.com',
-  'https://zerodha-nu-nine.vercel.app'
+  "http://localhost:3000",
+  "http://localhost:3001",
+  "https://zerodha-frontend-swjp.onrender.com",
+  "https://zerodha-dashboard-ezcd.onrender.com",
+  "https://zerodha-nu-nine.vercel.app",
 ];
 
-app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  credentials: true
-}));
-
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+  })
+);
 
 app.use(bodyParser.json());
 app.use(express.json());
 
-mongoose.connect(process.env.MONGO_URL)
+mongoose
+  .connect(process.env.MONGO_URL)
   .then(() => console.log("Connected to MongoDB"))
-  .catch(err => console.error("MongoDB connection error:", err));
+  .catch((err) => console.error("MongoDB connection error:", err));
 
 app.use("/", authRoutes);
 app.use("/funds", fundsRoutes);
@@ -55,118 +59,112 @@ app.use("/positions", positionsRoutes);
 app.use("/watchlist", watchlistRoutes);
 app.use("/api/stock", stockRoutes);
 
+const DEFAULT_INDICES = {
+  nifty: { value: 0, change: 0 },
+  sensex: { value: 0, change: 0 },
+};
+
 app.get("/indices", async (req, res) => {
   try {
-    const nifty = await yahooFinance.quote("^NSEI");
-    const sensex = await yahooFinance.quote("^BSESN");
+    // Using Finnhub Quote API for index snapshots.
+    const [niftyRaw, sensexRaw] = await Promise.all([
+      fetchQuote("^NSEI"),
+      fetchQuote("^BSESN"),
+    ]);
 
-    res.json({
+    const nifty = mapFinnhubQuote(niftyRaw);
+    const sensex = mapFinnhubQuote(sensexRaw);
+
+    return res.json({
       nifty: {
-        value: nifty.regularMarketPrice,
-        change: nifty.regularMarketChangePercent,
+        value: Number.isFinite(nifty?.currentPrice) ? nifty.currentPrice : 0,
+        change: Number.isFinite(nifty?.percent) ? nifty.percent : 0,
       },
       sensex: {
-        value: sensex.regularMarketPrice,
-        change: sensex.regularMarketChangePercent,
+        value: Number.isFinite(sensex?.currentPrice) ? sensex.currentPrice : 0,
+        change: Number.isFinite(sensex?.percent) ? sensex.percent : 0,
       },
     });
   } catch (error) {
-    console.error("Yahoo API error:", error);
-    res.status(500).json({ error: "Failed to fetch data" });
+    console.error("Finnhub API error:", error?.message || error);
+    return res.status(200).json({
+      ...DEFAULT_INDICES,
+      sourceError: "indices_unavailable",
+    });
   }
 });
-
-
 
 app.get("/search/symbols", async (req, res) => {
   const query = req.query.q;
   if (!query) return res.status(400).json({ error: "Missing query" });
 
   try {
-    const result = await yahooFinance.search(query);
-    const filtered = result.quotes
-      .filter((item) => item.quoteType === "EQUITY")
-      .slice(0, 10) // limit results
+    const result = await searchSymbols(query);
+    const filtered = (result?.result || [])
+      .filter((item) => {
+        const type = String(item?.type || "").toLowerCase();
+        return !type || type.includes("stock") || type.includes("equity");
+      })
+      .slice(0, 10)
       .map((item) => ({
-        symbol: item.symbol,
-        name: item.shortname,
+        symbol: item.symbol || item.displaySymbol,
+        name: item.description || item.symbol || item.displaySymbol,
       }));
 
     res.json(filtered);
   } catch (err) {
-    console.error("Yahoo search error:", err);
+    console.error("Finnhub search error:", err?.message || err);
     res.status(500).json({ error: "Search failed" });
   }
 });
 
-app.get('/history/:symbol', async (req, res) => {
+app.get("/history/:symbol", async (req, res) => {
   const symbol = req.params.symbol;
   const { range = "1mo", interval = "1d" } = req.query;
 
   try {
-    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?range=${range}&interval=${interval}`;
-    const response = await axios.get(url, {
-      headers: {
-        "User-Agent": "Mozilla/5.0",
-      },
+    const now = Math.floor(Date.now() / 1000);
+    const rangeToDays = {
+      "1mo": 30,
+      "6mo": 182,
+      "1y": 365,
+    };
+
+    // Keep the same route contract while mapping UI interval to Finnhub resolution.
+    const resolution = interval === "1mo" ? "M" : "D";
+    const days = rangeToDays[range] || 30;
+    const from = now - days * 24 * 60 * 60;
+
+    const candles = await fetchCandles({
+      symbol,
+      resolution,
+      from,
+      to: now,
     });
 
-    const result = response.data.chart.result && response.data.chart.result[0];
-    if (!result || !result.timestamp || !result.indicators?.quote[0]?.close) {
+    if (candles?.s !== "ok" || !Array.isArray(candles?.t) || !Array.isArray(candles?.c)) {
       return res.json([]);
     }
-    const timestamps = result.timestamp;
-    const closePrices = result.indicators.quote[0].close;
 
-    // Format to standard "YYYY-MM-DD" and filter out missing prices
-    const formattedData = timestamps.map((ts, i) => {
-      const price = closePrices[i];
-      // Filter out null/undefined price entries
-      if (price == null) return null;
-      // Format: 2025-07-23 (safe for chart)
-      const date = new Date(ts * 1000).toISOString().split('T')[0];
-      return { date, close: price };
-    }).filter(Boolean);
+    const timestamps = candles.t;
+    const closePrices = candles.c;
+
+    const formattedData = timestamps
+      .map((ts, i) => {
+        const price = closePrices[i];
+        if (price == null) return null;
+        const date = new Date(ts * 1000).toISOString().split("T")[0];
+        return { date, close: price };
+      })
+      .filter(Boolean);
 
     res.json(formattedData);
   } catch (err) {
-    console.error("Failed to fetch stock history:", err.message);
+    console.error("Failed to fetch stock history:", err?.message || err);
     res.status(500).json({ error: "Failed to fetch stock history" });
   }
 });
 
-
-
-
-
-
-
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
