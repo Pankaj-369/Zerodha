@@ -3,6 +3,7 @@ const router = express.Router();
 const verifyToken = require("../middleware/verifyToken");
 const { PositionsModel } = require("../model/PositionsModel");
 const { fetchQuote, mapFinnhubQuote } = require("../utils/finnhubClient");
+const { mapToUsSymbol, getProductLabel } = require("../utils/symbolMapper");
 
 
 router.get("/", verifyToken, async (req, res) => {
@@ -14,8 +15,9 @@ router.get("/", verifyToken, async (req, res) => {
 
     const enrichedPositions = await Promise.all(
       positions.map(async (pos) => {
+        const mappedSymbol = mapToUsSymbol(pos.name);
         try {
-          const quote = await fetchQuote(pos.name);
+          const quote = await fetchQuote(mappedSymbol);
           const mapped = mapFinnhubQuote(quote);
           const LTP = mapped.currentPrice;
           const prevClose = mapped.previousClose;
@@ -24,14 +26,18 @@ router.get("/", verifyToken, async (req, res) => {
 
           return {
             ...pos._doc,
+            name: mappedSymbol,
+            product: getProductLabel(pos.product),
             LTP,
             day: dayChange.toFixed(2),
             isLoss,
           };
         } catch (err) {
-          console.error("Error fetching price for:", pos.name, err);
+          console.error("Error fetching price for:", mappedSymbol, err);
           return {
             ...pos._doc,
+            name: mappedSymbol,
+            product: getProductLabel(pos.product),
             LTP: pos.price,
             day: "N/A",
             isLoss: false,

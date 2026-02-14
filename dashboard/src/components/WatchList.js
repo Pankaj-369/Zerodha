@@ -6,11 +6,13 @@ import {
   KeyboardArrowUp,
   MoreHoriz,
 } from "@mui/icons-material";
-import axios from 'axios';
+import axios from "axios";
 import GeneralContext from "./GeneralContext";
 import { DoughnutChart } from "./DoughnutChart";
 import "./watchlist.css";
 import { useNavigate } from "react-router-dom";
+import { formatUSD } from "../utils/formatters";
+
 const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:3002";
 
 const WatchList = () => {
@@ -19,14 +21,14 @@ const WatchList = () => {
   const [suggestions, setSuggestions] = useState([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
-  // Load watchlist initially
   useEffect(() => {
-    axios.get(`${backendUrl}/watchlist`, {
-      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-    }).then((res) => setWatchlist(res.data));
+    axios
+      .get(`${backendUrl}/watchlist`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      })
+      .then((res) => setWatchlist(res.data));
   }, []);
 
-  // Fetch search suggestions
   useEffect(() => {
     const fetchSuggestions = async () => {
       if (!searchText.trim()) {
@@ -49,7 +51,6 @@ const WatchList = () => {
     return () => clearTimeout(timeout);
   }, [searchText]);
 
-  // Add a stock to watchlist
   const handleAddToWatchList = async (stock) => {
     try {
       const res = await axios.post(
@@ -92,29 +93,37 @@ const WatchList = () => {
     }
   };
 
-  const labels = watchlist.map(item => item.symbol);
+  const labels = watchlist.map((item) => item.symbol);
   const data = {
     labels,
-    datasets: [{
-      label: 'Price',
-      data: watchlist.map(item => item.price),
-      backgroundColor: [
-        'rgba(255, 99, 132, 0.5)', 'rgba(54, 162, 235, 0.5)',
-        'rgba(255, 206, 86, 0.5)', 'rgba(75, 192, 192, 0.5)',
-        'rgba(153, 102, 255, 0.5)', 'rgba(255, 159, 64, 0.5)',
-      ],
-      borderColor: [
-        'rgba(255, 99, 132, 0.9)', 'rgba(54, 162, 235, 0.9)',
-        'rgba(255, 206, 86, 0.9)', 'rgba(75, 192, 192, 0.9)',
-        'rgba(153, 102, 255, 0.9)', 'rgba(255, 159, 64, 0.9)',
-      ],
-      borderWidth: 1,
-    }],
+    datasets: [
+      {
+        label: "Price",
+        data: watchlist.map((item) => item.price),
+        backgroundColor: [
+          "rgba(255, 99, 132, 0.5)",
+          "rgba(54, 162, 235, 0.5)",
+          "rgba(255, 206, 86, 0.5)",
+          "rgba(75, 192, 192, 0.5)",
+          "rgba(153, 102, 255, 0.5)",
+          "rgba(255, 159, 64, 0.5)",
+        ],
+        borderColor: [
+          "rgba(255, 99, 132, 0.9)",
+          "rgba(54, 162, 235, 0.9)",
+          "rgba(255, 206, 86, 0.9)",
+          "rgba(75, 192, 192, 0.9)",
+          "rgba(153, 102, 255, 0.9)",
+          "rgba(255, 159, 64, 0.9)",
+        ],
+        borderWidth: 1,
+      },
+    ],
   };
 
   return (
     <div className="watchlist-container">
-      <div className="search-container" style={{ position: 'relative' }}>
+      <div className="search-container" style={{ position: "relative" }}>
         <input
           type="text"
           value={searchText}
@@ -124,7 +133,7 @@ const WatchList = () => {
               handleAddToWatchList(suggestions[0]);
             }
           }}
-          placeholder="Search eg:infy, bse, nifty fut weekly, gold mcx"
+          placeholder="Search US stocks, ETFs, or indices (e.g., AAPL, SPY, QQQ)"
           className="search"
           autoComplete="off"
         />
@@ -136,7 +145,13 @@ const WatchList = () => {
               <li
                 key={stock.symbol}
                 onMouseDown={() => handleAddToWatchList(stock)}
-                style={{ cursor: "pointer", padding: "4px 8px", display: "flex", alignItems: "center", gap: 4 }}
+                style={{
+                  cursor: "pointer",
+                  padding: "4px 8px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
+                }}
               >
                 <strong>{stock.symbol}</strong>
                 <span style={{ fontSize: 12, color: "#888" }}>{stock.name}</span>
@@ -145,16 +160,12 @@ const WatchList = () => {
           </ul>
         )}
 
-        {loadingSuggestions && <div className="autocomplete-loading">Loading…</div>}
+        {loadingSuggestions && <div className="autocomplete-loading">Loading...</div>}
       </div>
 
       <ul className="list">
         {watchlist.map((stock, index) => (
-          <WatchListItem
-            key={index}
-            stock={stock}
-            onRemove={handleRemoveFromWatchlist}
-          />
+          <WatchListItem key={index} stock={stock} onRemove={handleRemoveFromWatchlist} />
         ))}
       </ul>
 
@@ -168,21 +179,20 @@ export default WatchList;
 const WatchListItem = ({ stock, onRemove }) => {
   const [showActions, setShowActions] = useState(false);
   return (
-    <li
-      onMouseEnter={() => setShowActions(true)}
-      onMouseLeave={() => setShowActions(false)}
-    >
+    <li onMouseEnter={() => setShowActions(true)} onMouseLeave={() => setShowActions(false)}>
       <div className="item">
         <p style={{ fontWeight: "450" }} className={stock.isDown ? "down" : "up"}>
           {stock.symbol}
         </p>
         <div className="itemInfo">
-          <span className="percent">{(stock.percent)?.toFixed(2)}%</span>
+          <span className="percent">{(stock.percent || 0).toFixed(2)}%</span>
           {stock.isDown ? <KeyboardArrowDown className="down" /> : <KeyboardArrowUp className="up" />}
-          <span className="price">₹{stock.price?.toFixed(2)}</span>
+          <span className="price">{formatUSD(stock.price)}</span>
         </div>
       </div>
-      {showActions && <WatchListActions uid={stock.symbol} currentPrice={stock?.price} onRemove={onRemove} />}
+      {showActions && (
+        <WatchListActions uid={stock.symbol} currentPrice={stock?.price} onRemove={onRemove} />
+      )}
     </li>
   );
 };
@@ -199,10 +209,14 @@ const WatchListActions = ({ uid, currentPrice, onRemove }) => {
   return (
     <span className="actions">
       <Tooltip title="Buy (B)" placement="top" arrow TransitionComponent={Grow}>
-        <button className="buy" onClick={() => generalContext.openBuyWindow(uid, currentPrice)}>Buy</button>
+        <button className="buy" onClick={() => generalContext.openBuyWindow(uid, currentPrice)}>
+          Buy
+        </button>
       </Tooltip>
       <Tooltip title="Sell (S)" placement="top" arrow TransitionComponent={Grow}>
-        <button className="sell" onClick={() => generalContext.openSellWindow(uid, currentPrice)}>Sell</button>
+        <button className="sell" onClick={() => generalContext.openSellWindow(uid, currentPrice)}>
+          Sell
+        </button>
       </Tooltip>
       <Tooltip title="Analytics (A)" placement="top" arrow>
         <button className="action" onClick={() => navigate(`/analytics/${uid}`)}>
@@ -215,10 +229,12 @@ const WatchListActions = ({ uid, currentPrice, onRemove }) => {
         </button>
       </Tooltip>
       <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
-        <MenuItem onClick={() => {
-          onRemove(uid);
-          handleClose();
-        }}>
+        <MenuItem
+          onClick={() => {
+            onRemove(uid);
+            handleClose();
+          }}
+        >
           Remove from Watchlist
         </MenuItem>
       </Menu>

@@ -3,6 +3,7 @@ const { PositionsModel } = require("./model/PositionsModel");
 const { HoldingsModel } = require("./model/HoldingsModel");
 const { UsersModel } = require("./model/UsersModel");
 const { fetchQuote, mapFinnhubQuote } = require("./utils/finnhubClient");
+const { mapToUsSymbol, mapProductToUs } = require("./utils/symbolMapper");
 
 cron.schedule(
   "20 15 * * 1-5", // 2:00 PM IST
@@ -15,15 +16,17 @@ cron.schedule(
       for (const pos of allPositions) {
         const user = await UsersModel.findById(pos.userId);
         if (!user) continue;
+        const mappedSymbol = mapToUsSymbol(pos.name);
+        const normalizedProduct = mapProductToUs(pos.product);
 
         let LTP;
         try {
-          const quote = await fetchQuote(pos.name);
+          const quote = await fetchQuote(mappedSymbol);
           const mapped = mapFinnhubQuote(quote);
           LTP = mapped.currentPrice;
           if (!LTP) throw new Error("No LTP found");
         } catch (e) {
-          console.error(`Failed to get price for ${pos.name}:`, e.message);
+          console.error(`Failed to get price for ${mappedSymbol}:`, e.message);
           continue;
         }
 
@@ -32,20 +35,20 @@ cron.schedule(
         const sellAmount = qty * LTP;
         const cost = qty * buyPrice;
 
-        if (pos.product === "MIS") {
-          // Square off intraday MIS.
+        if (normalizedProduct === "DAY") {
+          // Day Order positions are auto squared-off.
           user.availableMargin += sellAmount;
           user.usedMargin -= cost;
           if (user.usedMargin < 0) user.usedMargin = 0;
           await user.save();
 
           await PositionsModel.findByIdAndDelete(pos._id);
-          console.log(`MIS squared off: ${pos.name}, qty: ${qty}`);
-        } else if (pos.product === "CNC") {
-          // Delivery-based: move to Holdings.
+          console.log(`Day Order squared off: ${mappedSymbol}, qty: ${qty}`);
+        } else if (normalizedProduct === "GTC") {
+          // GTC positions are moved to holdings.
           const existingHolding = await HoldingsModel.findOne({
             userId: pos.userId,
-            symbol: pos.name,
+            symbol: mappedSymbol,
           });
 
           if (existingHolding) {
@@ -59,21 +62,21 @@ cron.schedule(
             await existingHolding.save();
 
             console.log(
-              `Updated holding: ${pos.name}, qty: ${totalQty}, avg: ${avgBuyPrice}`
+              `Updated holding: ${mappedSymbol}, qty: ${totalQty}, avg: ${avgBuyPrice}`
             );
           } else {
             await HoldingsModel.create({
               userId: pos.userId,
-              symbol: pos.name,
+              symbol: mappedSymbol,
               qty,
               avgBuyPrice: buyPrice,
             });
 
-            console.log(`New holding created: ${pos.name}, qty: ${qty}`);
+            console.log(`New holding created: ${mappedSymbol}, qty: ${qty}`);
           }
 
           await PositionsModel.findByIdAndDelete(pos._id);
-          console.log(`CNC delivery moved to holdings: ${pos.name}, qty: ${qty}`);
+          console.log(`GTC position moved to holdings: ${mappedSymbol}, qty: ${qty}`);
         }
       }
 

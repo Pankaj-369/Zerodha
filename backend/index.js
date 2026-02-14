@@ -10,6 +10,7 @@ const {
   searchSymbols,
   fetchCandles,
 } = require("./utils/finnhubClient");
+const { mapToUsSymbol } = require("./utils/symbolMapper");
 
 const authRoutes = require("./routes/authRoutes");
 const fundsRoutes = require("./routes/fundsRoutes");
@@ -60,35 +61,43 @@ app.use("/watchlist", watchlistRoutes);
 app.use("/api/stock", stockRoutes);
 
 const DEFAULT_INDICES = {
-  nifty: { value: 0, change: 0 },
-  sensex: { value: 0, change: 0 },
+  sp500: { value: 0, change: 0 },
+  dowJones: { value: 0, change: 0 },
 };
 
 app.get("/indices", async (req, res) => {
   try {
     // Using Finnhub Quote API for index snapshots.
-    const [niftyRaw, sensexRaw] = await Promise.all([
-      fetchQuote("^NSEI"),
-      fetchQuote("^BSESN"),
+    const [sp500Raw, dowRaw] = await Promise.all([
+      fetchQuote("^GSPC"),
+      fetchQuote("^DJI"),
     ]);
 
-    const nifty = mapFinnhubQuote(niftyRaw);
-    const sensex = mapFinnhubQuote(sensexRaw);
+    const sp500 = mapFinnhubQuote(sp500Raw);
+    const dowJones = mapFinnhubQuote(dowRaw);
 
-    return res.json({
-      nifty: {
-        value: Number.isFinite(nifty?.currentPrice) ? nifty.currentPrice : 0,
-        change: Number.isFinite(nifty?.percent) ? nifty.percent : 0,
+    const response = {
+      sp500: {
+        value: Number.isFinite(sp500?.currentPrice) ? sp500.currentPrice : 0,
+        change: Number.isFinite(sp500?.percent) ? sp500.percent : 0,
       },
-      sensex: {
-        value: Number.isFinite(sensex?.currentPrice) ? sensex.currentPrice : 0,
-        change: Number.isFinite(sensex?.percent) ? sensex.percent : 0,
+      dowJones: {
+        value: Number.isFinite(dowJones?.currentPrice) ? dowJones.currentPrice : 0,
+        change: Number.isFinite(dowJones?.percent) ? dowJones.percent : 0,
       },
-    });
+    };
+
+    // Keep old keys for compatibility with existing clients.
+    response.nifty = response.sp500;
+    response.sensex = response.dowJones;
+
+    return res.json(response);
   } catch (error) {
     console.error("Finnhub API error:", error?.message || error);
-    return res.status(200).json({
+    return res.json({
       ...DEFAULT_INDICES,
+      nifty: DEFAULT_INDICES.sp500,
+      sensex: DEFAULT_INDICES.dowJones,
       sourceError: "indices_unavailable",
     });
   }
@@ -119,7 +128,7 @@ app.get("/search/symbols", async (req, res) => {
 });
 
 app.get("/history/:symbol", async (req, res) => {
-  const symbol = req.params.symbol;
+  const symbol = mapToUsSymbol(req.params.symbol);
   const { range = "1mo", interval = "1d" } = req.query;
 
   try {

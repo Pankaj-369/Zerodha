@@ -2,6 +2,8 @@ import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import { VerticalGraph } from "./VerticalGraph";
 import GeneralContext from "./GeneralContext.js";
+import { formatUSD } from "../utils/formatters";
+
 const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:3002";
 
 const Holdings = () => {
@@ -43,10 +45,10 @@ const Holdings = () => {
               <th>Avg. cost</th>
               <th>LTP</th>
               <th>Cur. val</th>
-              <th>P&L</th>
+              <th>P&amp;L</th>
               <th>Net chg.</th>
               <th>Day chg.</th>
-              <th></th> 
+              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -71,10 +73,10 @@ const Holdings = () => {
                 <tr key={index}>
                   <td>{stock.name}</td>
                   <td>{qty}</td>
-                  <td>{avg.toFixed(2)}</td>
-                  <td>{price.toFixed(2)}</td>
-                  <td>{curValue.toFixed(2)}</td>
-                  <td className={profClass}>{pnl.toFixed(2)}</td>
+                  <td>{formatUSD(avg)}</td>
+                  <td>{formatUSD(price)}</td>
+                  <td>{formatUSD(curValue)}</td>
+                  <td className={profClass}>{formatUSD(pnl)}</td>
                   <td className={netClass}>{net}</td>
                   <td className={dayClass}>{day}</td>
                   <td style={{ minWidth: 48, textAlign: "center" }}>
@@ -91,10 +93,10 @@ const Holdings = () => {
                           color: "#555",
                           transition: "color 0.2s",
                         }}
-                        onMouseOver={e => (e.currentTarget.style.color = "#222")}
-                        onMouseOut={e => (e.currentTarget.style.color = "#555")}
+                        onMouseOver={(e) => (e.currentTarget.style.color = "#222")}
+                        onMouseOut={(e) => (e.currentTarget.style.color = "#555")}
                       >
-                        <span style={{ fontWeight: "bold", fontSize: 22 }}>⋮</span>
+                        <span style={{ fontWeight: "bold", fontSize: 22 }}>...</span>
                       </button>
                       <ul
                         className="dropdown-menu dropdown-menu-end"
@@ -104,10 +106,8 @@ const Holdings = () => {
                         <li>
                           <button
                             className="dropdown-item text-success fw-semibold"
-                            style={{ fontWeight: 500, borderRadius: '3px' }}
-                            onClick={() =>
-                              generalContext.openBuyWindow(stock.symbol, stock.price)
-                            }
+                            style={{ fontWeight: 500, borderRadius: "3px" }}
+                            onClick={() => generalContext.openBuyWindow(stock.symbol, stock.price)}
                           >
                             <span style={{ fontWeight: "bold" }}>Buy</span>
                           </button>
@@ -115,10 +115,8 @@ const Holdings = () => {
                         <li>
                           <button
                             className="dropdown-item text-danger fw-semibold"
-                            style={{ fontWeight: 500, borderRadius: '3px' }}
-                            onClick={() =>
-                              generalContext.openSellWindow(stock.symbol, stock.price)
-                            }
+                            style={{ fontWeight: 500, borderRadius: "3px" }}
+                            onClick={() => generalContext.openSellWindow(stock.symbol, stock.price)}
                           >
                             <span style={{ fontWeight: "bold" }}>Sell</span>
                           </button>
@@ -133,33 +131,38 @@ const Holdings = () => {
         </table>
       </div>
 
-     {(() => {
-  const totalInvestment = allHoldings.reduce((acc, stock) => acc + (stock.avg || 0) * (stock.qty || 0), 0);
-  const currentValue = allHoldings.reduce((acc, stock) => acc + (stock.price || 0) * (stock.qty || 0), 0);
-  const pnl = currentValue - totalInvestment;
-  const pnlPercent = totalInvestment !== 0 ? (pnl / totalInvestment) * 100 : 0;
-  const pnlClass = pnl >= 0 ? "profit" : "loss";
+      {(() => {
+        const totalInvestment = allHoldings.reduce(
+          (acc, stock) => acc + (stock.avg || 0) * (stock.qty || 0),
+          0
+        );
+        const currentValue = allHoldings.reduce(
+          (acc, stock) => acc + (stock.price || 0) * (stock.qty || 0),
+          0
+        );
+        const pnl = currentValue - totalInvestment;
+        const pnlPercent = totalInvestment !== 0 ? (pnl / totalInvestment) * 100 : 0;
+        const pnlClass = pnl >= 0 ? "profit" : "loss";
 
-  return (
-    <div className="row">
-      <div className="col">
-        <h5>₹{totalInvestment.toFixed(2)}</h5>
-        <p>Total investment</p>
-      </div>
-      <div className="col">
-        <h5 className={pnlClass}>₹{currentValue.toFixed(2)}</h5>
-        <p>Current value</p>
-      </div>
-      <div className="col">
-        <h5 className={pnlClass}>
-          ₹{pnl.toFixed(2)} ({pnlPercent.toFixed(2)}%)
-        </h5>
-        <p>P&L</p>
-      </div>
-    </div>
-  );
-})()}
-
+        return (
+          <div className="row">
+            <div className="col">
+              <h5>{formatUSD(totalInvestment)}</h5>
+              <p>Total investment</p>
+            </div>
+            <div className="col">
+              <h5 className={pnlClass}>{formatUSD(currentValue)}</h5>
+              <p>Current value</p>
+            </div>
+            <div className="col">
+              <h5 className={pnlClass}>
+                {formatUSD(pnl)} ({pnlPercent.toFixed(2)}%)
+              </h5>
+              <p>P&amp;L</p>
+            </div>
+          </div>
+        );
+      })()}
 
       <VerticalGraph data={data} />
     </>

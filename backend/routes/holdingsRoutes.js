@@ -3,6 +3,7 @@ const router = express.Router();
 const verifyToken = require("../middleware/verifyToken");
 const { HoldingsModel } = require("../model/HoldingsModel");
 const { fetchQuote, mapFinnhubQuote } = require("../utils/finnhubClient");
+const { mapToUsSymbol, getCompanyName } = require("../utils/symbolMapper");
 
 // In-memory cache
 const cache = {};
@@ -10,36 +11,39 @@ const CACHE_TTL = 60 * 1000; // 60 seconds
 
 // Fetch quote data with caching
 const getQuoteData = async (symbol) => {
+  const mappedSymbol = mapToUsSymbol(symbol);
   const now = Date.now();
 
   // Check cache
-  if (cache[symbol] && now - cache[symbol].timestamp < CACHE_TTL) {
-    return cache[symbol].data;
+  if (cache[mappedSymbol] && now - cache[mappedSymbol].timestamp < CACHE_TTL) {
+    return cache[mappedSymbol].data;
   }
 
   try {
-    const quote = await fetchQuote(symbol);
+    const quote = await fetchQuote(mappedSymbol);
     const mapped = mapFinnhubQuote(quote);
 
     const data = {
       // Preserve existing response contract consumed by holdings UI.
-      name: symbol,
+      symbol: mappedSymbol,
+      name: getCompanyName(mappedSymbol),
       price: mapped.currentPrice || 0,
       net: (mapped.change ?? 0).toFixed(2),
       day: (mapped.percent ?? 0).toFixed(2) + "%",
     };
 
     // Save to cache
-    cache[symbol] = {
+    cache[mappedSymbol] = {
       data,
       timestamp: now,
     };
 
     return data;
   } catch (err) {
-    console.error(`Finnhub quote error for ${symbol}:`, err.message);
+    console.error(`Finnhub quote error for ${mappedSymbol}:`, err.message);
     return {
-      name: symbol,
+      symbol: mappedSymbol,
+      name: getCompanyName(mappedSymbol),
       price: 0,
       net: "0.00",
       day: "0.00%",
@@ -58,7 +62,7 @@ router.get("/", verifyToken, async (req, res) => {
         const stock = await getQuoteData(h.symbol);
         return {
           name: stock.name,
-          symbol: h.symbol,
+          symbol: stock.symbol,
           qty: h.qty,
           avg: h.avgBuyPrice,
           price: stock.price,

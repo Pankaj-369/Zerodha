@@ -3,6 +3,11 @@ const router = express.Router();
 const verifyToken = require("../middleware/verifyToken");
 const { WatchListModel } = require("../model/WatchListModel");
 const { fetchQuote, mapFinnhubQuote } = require("../utils/finnhubClient");
+const {
+  mapToUsSymbol,
+  getSymbolLookupCandidates,
+  getCompanyName,
+} = require("../utils/symbolMapper");
 
 const priceCache = {};
 const CACHE_DURATION = 60 * 1000;
@@ -53,11 +58,12 @@ router.get("/", verifyToken, async (req, res) => {
     // Step 2: Fetch live price for each stock
     const enrichedWatchlist = await Promise.all(
       watchlist.map(async (item) => {
-        const liveData = await getCachedQuote(item.symbol);
+        const mappedSymbol = mapToUsSymbol(item.symbol);
+        const liveData = await getCachedQuote(mappedSymbol);
         return {
           _id: item._id,
-          symbol: item.symbol,
-          name: item.name,
+          symbol: mappedSymbol,
+          name: getCompanyName(mappedSymbol, item.name),
           ...liveData, // price, change, percent, isDown
         };
       })
@@ -75,20 +81,29 @@ router.get("/", verifyToken, async (req, res) => {
 router.post("/add", verifyToken, async (req, res) => {
   const { symbol, name } = req.body;
   const userId = req.user.id;
+  const mappedSymbol = mapToUsSymbol(symbol);
+  const symbolCandidates = getSymbolLookupCandidates(mappedSymbol);
 
-  console.log("Adding to watchlist:", { userId, symbol, name });
+  console.log("Adding to watchlist:", { userId, symbol: mappedSymbol, name });
 
-  if (!symbol || !name) {
+  if (!mappedSymbol || !name) {
     return res.status(400).json({ success: false, message: "Missing fields" });
   }
 
   try {
-    const exists = await WatchListModel.findOne({ userId, symbol });
+    const exists = await WatchListModel.findOne({
+      userId,
+      symbol: { $in: symbolCandidates },
+    });
     if (exists) {
       return res.json({ success: false, message: "Already in watchlist" });
     }
 
-    const newItem = new WatchListModel({ userId, symbol, name });
+    const newItem = new WatchListModel({
+      userId,
+      symbol: mappedSymbol,
+      name: getCompanyName(mappedSymbol, name),
+    });
     await newItem.save();
     res.json({ success: true, message: "Added to watchlist" });
   } catch (err) {
@@ -99,10 +114,15 @@ router.post("/add", verifyToken, async (req, res) => {
 
 router.delete("/remove", verifyToken, async (req, res) => {
   const userId = req.user.id;
-  const {symbol} = req.body;
+  const { symbol } = req.body;
+  const symbolCandidates = getSymbolLookupCandidates(symbol);
 
   try {
-    await WatchListModel.findOneAndDelete({ user: userId, symbol });
+    // Match both legacy and mapped symbols without requiring DB migration.
+    await WatchListModel.findOneAndDelete({
+      userId,
+      symbol: { $in: symbolCandidates },
+    });
     res.json({ success: true, message: "Removed from watchlist" });
   } catch (err) {
     console.error("Watchlist delete error:", err);

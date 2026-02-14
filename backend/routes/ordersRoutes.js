@@ -8,6 +8,11 @@ const { OrdersModel } = require("../model/OrdersModel");
 const { UsersModel } = require("../model/UsersModel");
 const { HoldingsModel } = require("../model/HoldingsModel");
 const { PositionsModel } = require("../model/PositionsModel");
+const {
+  mapToUsSymbol,
+  getSymbolLookupCandidates,
+  mapProductToUs,
+} = require("../utils/symbolMapper");
 
 
 router.get("/", verifyToken, async (req, res) => {
@@ -22,9 +27,23 @@ router.get("/", verifyToken, async (req, res) => {
 
 router.post("/new", verifyToken, async (req, res) => {
   const userId = req.user.id;
-  const { name, qty, price, mode, orderType, symbol = "MARKET", product = "CNC", isPositionSell = false, positionId } = req.body;
+  const {
+    name,
+    qty,
+    price,
+    mode,
+    orderType = "MARKET",
+    symbol,
+    product = "GTC",
+    isPositionSell = false,
+    positionId,
+  } = req.body;
 
-  if (!name || !qty || !mode || !price) {
+  const normalizedName = mapToUsSymbol(name);
+  const normalizedSymbol = mapToUsSymbol(symbol || name);
+  const normalizedProduct = mapProductToUs(product);
+
+  if (!normalizedName || !qty || !mode || !price) {
     return res.status(400).json({ success: false, message: "Missing required fields" });
   }
 
@@ -75,10 +94,11 @@ router.post("/new", verifyToken, async (req, res) => {
       // Record as an Order
       const status = orderType === "MARKET" ? "EXECUTED" : "PENDING";
       const newOrder = new OrdersModel({
-        name,
+        name: normalizedName,
         qty: quantity,
         price: finalPrice,
         mode: "SELL", 
+        type: orderType,
         status,
         timestamp: new Date(),
         userId,
@@ -110,7 +130,11 @@ router.post("/new", verifyToken, async (req, res) => {
     }
 
     if (mode === "SELL") {
-      const holding = await HoldingsModel.findOne({ userId, symbol });
+      const symbolCandidates = getSymbolLookupCandidates(normalizedSymbol);
+      const holding = await HoldingsModel.findOne({
+        userId,
+        symbol: { $in: symbolCandidates },
+      });
       if (!holding || holding.qty < quantity) {
         return res.status(400).json({ success: false, message: "Insufficient holdings to sell" });
       }
@@ -128,10 +152,11 @@ router.post("/new", verifyToken, async (req, res) => {
     const status = orderType === "MARKET" ? "EXECUTED" : "PENDING";
 
     const newOrder = new OrdersModel({
-      name,
+      name: normalizedName,
       qty: quantity,
       price: finalPrice,
       mode,
+      type: orderType,
       status,
       timestamp: new Date(),
       userId,
@@ -142,8 +167,8 @@ router.post("/new", verifyToken, async (req, res) => {
 
     if (status === "EXECUTED" && mode === "BUY") {
       const newPosition = new PositionsModel({
-        product,
-        name,
+        product: normalizedProduct,
+        name: normalizedName,
         qty: quantity,
         price: finalPrice,
         userId,

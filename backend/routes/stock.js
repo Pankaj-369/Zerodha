@@ -1,13 +1,14 @@
 const express = require("express");
 const router = express.Router();
 const { fetchQuote, mapFinnhubQuote } = require("../utils/finnhubClient");
+const { mapToUsSymbol, getCompanyName } = require("../utils/symbolMapper");
 
 // In-memory cache object
 const cache = {};
 const CACHE_TTL_MS = 60 * 1000; // Cache TTL: 60 seconds
 
 router.get("/live/:symbol", async (req, res) => {
-  const symbol = req.params.symbol;
+  const symbol = mapToUsSymbol(req.params.symbol);
   const now = Date.now();
 
   // Check if the symbol is cached and still fresh
@@ -23,7 +24,7 @@ router.get("/live/:symbol", async (req, res) => {
 
     const data = {
       // Quote endpoint does not include long instrument names; keep stable fallback.
-      name: symbol,
+      name: getCompanyName(symbol),
       price: mapped.currentPrice,
       change: mapped.change,
       percent: mapped.percent,

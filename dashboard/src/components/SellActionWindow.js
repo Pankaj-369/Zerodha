@@ -1,9 +1,10 @@
 import React, { useState, useContext, useEffect } from "react";
 import axios from "axios";
 import GeneralContext from "./GeneralContext";
+import { formatUSD } from "../utils/formatters";
+
 const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:3002";
 
-// Header section
 const ModalHeader = ({ uid, onClose }) => (
   <div className="d-flex justify-content-between align-items-center mb-2">
     <h4 className="fw-bold text-center flex-grow-1 mb-0">Sell {uid}</h4>
@@ -11,7 +12,6 @@ const ModalHeader = ({ uid, onClose }) => (
   </div>
 );
 
-// Info (Available, Avg Price)
 const HoldingInfo = ({ availableQty, avgPrice }) => (
   <div className="alert alert-light py-2 mb-2">
     <div className="d-flex justify-content-between small">
@@ -20,39 +20,41 @@ const HoldingInfo = ({ availableQty, avgPrice }) => (
     </div>
     <div className="d-flex justify-content-between small">
       <span>Avg. Price:</span>
-      <span>₹{avgPrice?.toFixed(2)}</span>
+      <span>{formatUSD(avgPrice || 0)}</span>
     </div>
   </div>
 );
 
-// Toggle Order Type
-const OrderTypeToggle = ({ orderType, setOrderType, currentPrice }) => (
+const OrderTypeToggle = ({ orderType, setOrderType }) => (
   <div className="mb-2 d-flex justify-content-center gap-2">
     <button
       type="button"
       className={`btn btn-sm ${orderType === "MARKET" ? "btn-primary" : "btn-outline-primary"}`}
       onClick={() => setOrderType("MARKET")}
-      style={{ minWidth: 95 }}
+      style={{ minWidth: 85 }}
     >
-      Market Order
+      Market
     </button>
     <button
       type="button"
       className={`btn btn-sm ${orderType === "LIMIT" ? "btn-primary" : "btn-outline-primary"}`}
       onClick={() => setOrderType("LIMIT")}
-      style={{ minWidth: 95 }}
+      style={{ minWidth: 85 }}
     >
-      Limit Order
+      Limit
+    </button>
+    <button
+      type="button"
+      className={`btn btn-sm ${orderType === "STOP" ? "btn-primary" : "btn-outline-primary"}`}
+      onClick={() => setOrderType("STOP")}
+      style={{ minWidth: 85 }}
+    >
+      Stop
     </button>
   </div>
 );
 
-const SellActionWindow = ({
-  uid,
-  currentPrice,
-  mode = "holdings",
-  position // for positions mode
-}) => {
+const SellActionWindow = ({ uid, currentPrice, mode = "holdings", position }) => {
   const [stockQuantity, setStockQuantity] = useState(0);
   const [stockPrice, setStockPrice] = useState(currentPrice || 0);
   const [orderType, setOrderType] = useState("MARKET");
@@ -84,7 +86,7 @@ const SellActionWindow = ({
               Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
           });
-          const holding = res.data.find(h => h.symbol === uid);
+          const holding = res.data.find((h) => h.symbol === uid);
           if (holding) {
             setAvailableQty(holding.qty);
             setAvgPrice(holding.avg);
@@ -113,16 +115,23 @@ const SellActionWindow = ({
   const profitLoss = (stockPrice - avgPrice) * stockQuantity;
   const tooMuch = stockQuantity > availableQty;
 
-  // Handler
   const handleSellClick = async (e) => {
     e.preventDefault();
     setError("");
-    if (stockQuantity <= 0) { setError("Enter valid quantity."); return; }
-    if (tooMuch) { setError(`Insufficient quantity. Available: ${availableQty}`); return; }
-    if (orderType === "LIMIT" && stockPrice <= 0) { setError("Enter valid limit price."); return; }
+    if (stockQuantity <= 0) {
+      setError("Enter valid quantity.");
+      return;
+    }
+    if (tooMuch) {
+      setError(`Insufficient quantity. Available: ${availableQty}`);
+      return;
+    }
+    if ((orderType === "LIMIT" || orderType === "STOP") && stockPrice <= 0) {
+      setError("Enter valid trigger price.");
+      return;
+    }
     setLoading(true);
 
-    // Position square-off
     if (mode === "positions" && position) {
       try {
         const orderData = {
@@ -132,11 +141,10 @@ const SellActionWindow = ({
           price: Number(stockPrice),
           orderType,
           isPositionSell: true,
-          mode: "SELL", 
+          mode: "SELL",
         };
-        const res = await axios.post(
-          `${backendUrl}/orders/new`, orderData,
-          { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+        const res = await axios.post(`${backendUrl}/orders/new`, orderData, {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
         if (res.data.success) {
           alert("Position squared off successfully!");
@@ -144,36 +152,41 @@ const SellActionWindow = ({
         } else setError(res.data.message || "Failed to square off position");
       } catch (err) {
         setError(err?.response?.data?.message || "Error squaring off position");
-      } finally { setLoading(false); }
+      } finally {
+        setLoading(false);
+      }
       return;
     }
 
-    // Holdings sell
     if (mode === "holdings") {
       try {
         const orderData = {
-          name: uid, qty: Number(stockQuantity), price: Number(stockPrice),
-          mode: "SELL", orderType, symbol: uid
+          name: uid,
+          qty: Number(stockQuantity),
+          price: Number(stockPrice),
+          mode: "SELL",
+          orderType,
+          symbol: uid,
         };
-        const res = await axios.post(
-          `${backendUrl}/orders/new`, orderData,
-          { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+        const res = await axios.post(`${backendUrl}/orders/new`, orderData, {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
         if (res.data.success) {
           alert(
             orderType === "MARKET"
               ? "Market sell order executed successfully!"
-              : "Limit sell order placed successfully!"
+              : `${orderType} sell order placed successfully!`
           );
           generalContext.closeSellWindow();
         } else setError(res.data.message || "Failed to place order");
       } catch (err) {
         setError(err?.response?.data?.message || "Error placing order");
-      } finally { setLoading(false); }
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
-  // Show spinner while fetching
   if (holdingsLoading) {
     return (
       <div className="card shadow-lg p-3" style={modalStyle}>
@@ -186,7 +199,6 @@ const SellActionWindow = ({
     );
   }
 
-  // No shares, holdings mode
   if (mode === "holdings" && availableQty === 0) {
     return (
       <div className="card shadow-lg p-3" style={modalStyle}>
@@ -195,26 +207,22 @@ const SellActionWindow = ({
           <h5>No shares available to sell</h5>
           <p className="mb-0">You need to buy {uid} shares first before you can sell them.</p>
         </div>
-        <button
-          className="btn btn-outline-secondary w-100"
-          onClick={generalContext.closeSellWindow}
-        >Close</button>
+        <button className="btn btn-outline-secondary w-100" onClick={generalContext.closeSellWindow}>
+          Close
+        </button>
       </div>
     );
   }
 
   return (
-    <div
-      className="card shadow-lg p-3"
-      style={modalStyle}
-    >
+    <div className="card shadow-lg p-3" style={modalStyle}>
       <ModalHeader uid={uid} onClose={generalContext.closeSellWindow} />
       <form style={{ maxHeight: 370, overflowY: "auto" }} onSubmit={handleSellClick}>
         <HoldingInfo availableQty={availableQty} avgPrice={avgPrice} />
-        <OrderTypeToggle orderType={orderType} setOrderType={setOrderType} currentPrice={currentPrice} />
+        <OrderTypeToggle orderType={orderType} setOrderType={setOrderType} />
         {orderType === "MARKET" && (
           <div className="alert alert-info py-2 text-center mb-2" style={{ fontSize: 13 }}>
-            Order will execute at current market price: ₹{stockPrice?.toFixed(2)}
+            Order will execute at current market price: {formatUSD(stockPrice || 0)}
           </div>
         )}
         <div
@@ -226,7 +234,7 @@ const SellActionWindow = ({
             paddingBottom: "2px",
             visibility: error ? "visible" : "hidden",
             background: "none",
-            border: "none"
+            border: "none",
           }}
         >
           {error || <span>&nbsp;</span>}
@@ -241,7 +249,7 @@ const SellActionWindow = ({
             min="1"
             autoFocus
             style={{ height: 32 }}
-            onChange={e => {
+            onChange={(e) => {
               setError("");
               setStockQuantity(Number(e.target.value));
             }}
@@ -249,7 +257,7 @@ const SellActionWindow = ({
         </div>
         <div className="mb-2">
           <label className="form-label fw-semibold mb-0 small">
-            {orderType === "MARKET" ? "Current Price (₹)" : "Limit Price (₹)"}
+            {orderType === "MARKET" ? "Current Price (USD)" : "Trigger Price (USD)"}
           </label>
           <input
             type="number"
@@ -258,11 +266,11 @@ const SellActionWindow = ({
             min="0"
             step="0.01"
             style={{ height: 32 }}
-            onChange={e => setStockPrice(Number(e.target.value))}
+            onChange={(e) => setStockPrice(Number(e.target.value))}
             disabled={orderType === "MARKET"}
           />
         </div>
-        {(stockQuantity > 0 && stockQuantity <= availableQty) && (
+        {stockQuantity > 0 && stockQuantity <= availableQty && (
           <div className="mb-2 p-2 bg-light rounded small">
             <div className="d-flex justify-content-between">
               <span>Selling:</span>
@@ -270,15 +278,22 @@ const SellActionWindow = ({
             </div>
             <div className="d-flex justify-content-between">
               <span>Price per share:</span>
-              <span>₹{stockPrice.toFixed(2)}</span>
+              <span>{formatUSD(stockPrice)}</span>
             </div>
             <div className="d-flex justify-content-between fw-bold border-top pt-1">
               <span>Total Value:</span>
-              <span>₹{totalValue.toFixed(2)}</span>
+              <span>{formatUSD(totalValue)}</span>
             </div>
-            <div className={`d-flex justify-content-between ${profitLoss >= 0 ? "text-success" : "text-danger"}`}>
-              <span>P&L:</span>
-              <span>{profitLoss >= 0 ? "+" : ""}₹{profitLoss.toFixed(2)}</span>
+            <div
+              className={`d-flex justify-content-between ${
+                profitLoss >= 0 ? "text-success" : "text-danger"
+              }`}
+            >
+              <span>P&amp;L:</span>
+              <span>
+                {profitLoss >= 0 ? "+" : ""}
+                {formatUSD(profitLoss)}
+              </span>
             </div>
           </div>
         )}
@@ -290,11 +305,7 @@ const SellActionWindow = ({
           onClick={handleSellClick}
           disabled={loading || stockQuantity <= 0 || stockQuantity > availableQty || !!error}
         >
-          {loading
-            ? "Processing..."
-            : orderType === "MARKET"
-            ? "Sell at Market"
-            : "Place Limit Order"}
+          {loading ? "Processing..." : orderType === "MARKET" ? "Sell at Market" : "Place Order"}
         </button>
         <button
           className="btn btn-outline-secondary flex-grow-1"
@@ -308,7 +319,6 @@ const SellActionWindow = ({
   );
 };
 
-// Modal style
 const modalStyle = {
   maxWidth: "385px",
   width: "96vw",
@@ -319,7 +329,7 @@ const modalStyle = {
   borderRadius: "13px",
   zIndex: 9999,
   minHeight: "345px",
-  boxSizing: "border-box"
+  boxSizing: "border-box",
 };
 
 export default SellActionWindow;

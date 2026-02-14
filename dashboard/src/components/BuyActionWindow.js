@@ -2,6 +2,8 @@ import React, { useState, useContext } from "react";
 import axios from "axios";
 import GeneralContext from "./GeneralContext";
 import "./BuyActionWindow.css";
+import { formatUSD } from "../utils/formatters";
+
 const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:3002";
 
 const BuyActionWindow = ({ uid, currentPrice }) => {
@@ -10,12 +12,11 @@ const BuyActionWindow = ({ uid, currentPrice }) => {
   const [orderType, setOrderType] = useState("MARKET");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [product, setProduct] = useState("CNC"); 
+  const [product, setProduct] = useState("GTC");
   const generalContext = useContext(GeneralContext);
 
   const marginRequired = stockQuantity * stockPrice;
 
-  // Handle order type change
   const handleOrderTypeChange = (type) => {
     setOrderType(type);
     if (type === "MARKET") {
@@ -23,15 +24,14 @@ const BuyActionWindow = ({ uid, currentPrice }) => {
     }
   };
 
-
   const handleBuyClick = async () => {
     if (stockQuantity <= 0) {
       setError("Please enter valid quantity.");
       return;
     }
 
-    if (orderType === "LIMIT" && stockPrice <= 0) {
-      setError("Please enter valid price for limit order.");
+    if ((orderType === "LIMIT" || orderType === "STOP") && stockPrice <= 0) {
+      setError("Please enter valid trigger price.");
       return;
     }
 
@@ -46,21 +46,17 @@ const BuyActionWindow = ({ uid, currentPrice }) => {
         product,
       };
 
-      const res = await axios.post(
-       `${backendUrl}/orders/new`,
-        orderData,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+      const res = await axios.post(`${backendUrl}/orders/new`, orderData, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
 
       if (res.data.success) {
         alert(
           orderType === "MARKET"
             ? "Market order executed successfully!"
-            : "Limit order placed successfully!"
+            : `${orderType} order placed successfully!`
         );
         generalContext.closeBuyWindow();
         window.location.reload();
@@ -98,41 +94,40 @@ const BuyActionWindow = ({ uid, currentPrice }) => {
         <div className="btn-group" role="group">
           <button
             type="button"
-            className={`btn ${orderType === "MARKET" ? "btn-primary" : "btn-outline-primary"
-              }`}
+            className={`btn ${orderType === "MARKET" ? "btn-primary" : "btn-outline-primary"}`}
             onClick={() => handleOrderTypeChange("MARKET")}
           >
-            Market Order
+            Market
           </button>
           <button
             type="button"
-            className={`btn ${orderType === "LIMIT" ? "btn-primary" : "btn-outline-primary"
-              }`}
+            className={`btn ${orderType === "LIMIT" ? "btn-primary" : "btn-outline-primary"}`}
             onClick={() => handleOrderTypeChange("LIMIT")}
           >
-            Limit Order
+            Limit
+          </button>
+          <button
+            type="button"
+            className={`btn ${orderType === "STOP" ? "btn-primary" : "btn-outline-primary"}`}
+            onClick={() => handleOrderTypeChange("STOP")}
+          >
+            Stop
           </button>
         </div>
       </div>
 
-      {error && (
-        <div className="alert alert-danger py-2 text-center">{error}</div>
-      )}
+      {error && <div className="alert alert-danger py-2 text-center">{error}</div>}
 
       {orderType === "MARKET" && (
         <div className="alert alert-info py-2 text-center">
-          Order will execute at current market price: ₹{currentPrice?.toFixed(2) || "N/A"}
+          Order will execute at current market price: {formatUSD(currentPrice || 0)}
         </div>
       )}
       <div className="mb-3">
-        <label className="form-label fw-semibold">Product Type</label>
-        <select
-          className="form-select"
-          value={product}
-          onChange={(e) => setProduct(e.target.value)}
-        >
-          <option value="CNC">Delivery</option>
-          <option value="MIS">Intraday</option>
+        <label className="form-label fw-semibold">Duration</label>
+        <select className="form-select" value={product} onChange={(e) => setProduct(e.target.value)}>
+          <option value="DAY">Day Order</option>
+          <option value="GTC">GTC (Good Till Cancelled)</option>
         </select>
       </div>
 
@@ -143,18 +138,18 @@ const BuyActionWindow = ({ uid, currentPrice }) => {
           className="form-control"
           value={stockQuantity}
           min="1"
-           onChange={(e) => {
-    const val = e.target.value;
-    if (val === "" || Number(val) >= 1) {
-      setStockQuantity(val);
-    }
-  }}
+          onChange={(e) => {
+            const val = e.target.value;
+            if (val === "" || Number(val) >= 1) {
+              setStockQuantity(val);
+            }
+          }}
         />
       </div>
 
       <div className="mb-3">
         <label className="form-label fw-semibold">
-          {orderType === "MARKET" ? "Current Price (₹)" : "Limit Price (₹)"}
+          {orderType === "MARKET" ? "Current Price (USD)" : "Trigger Price (USD)"}
         </label>
         <input
           type="number"
@@ -168,25 +163,14 @@ const BuyActionWindow = ({ uid, currentPrice }) => {
       </div>
 
       <div className="mb-4 text-center text-muted fw-medium">
-        Margin required: ₹{marginRequired.toFixed(2)}
+        Estimated order value: {formatUSD(marginRequired)}
       </div>
 
       <div className="d-flex justify-content-between">
-        <button
-          className="btn btn-primary w-50 me-2"
-          onClick={handleBuyClick}
-          disabled={loading}
-        >
-          {loading
-            ? "Processing..."
-            : orderType === "MARKET"
-              ? "Buy at Market"
-              : "Place Limit Order"}
+        <button className="btn btn-primary w-50 me-2" onClick={handleBuyClick} disabled={loading}>
+          {loading ? "Processing..." : orderType === "MARKET" ? "Buy at Market" : "Place Order"}
         </button>
-        <button
-          className="btn btn-outline-secondary w-50"
-          onClick={handleCancelClick}
-        >
+        <button className="btn btn-outline-secondary w-50" onClick={handleCancelClick}>
           Cancel
         </button>
       </div>

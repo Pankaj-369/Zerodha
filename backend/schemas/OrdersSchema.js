@@ -7,7 +7,8 @@ const OrdersSchema = new Schema({
   mode: String,
   timestamp:Date,
   userId: { type: Schema.Types.ObjectId, ref: "User" },
-  type: { type: String, enum: ["MARKET", "LIMIT"], default: "MARKET" }, // Temporarily default to MARKET
+  // Support US order types while preserving existing structure.
+  type: { type: String, enum: ["MARKET", "LIMIT", "STOP"], default: "MARKET" },
   status: { type: String, enum: ["PENDING", "EXECUTED", "EXPIRED"], default: "EXECUTED" }
 });
 

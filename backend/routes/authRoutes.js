@@ -16,14 +16,15 @@ router.post("/signup", async (req, res) => {
     await userdata.save();
 
     const defaultWatchlist = [
-      { symbol: "RELIANCE.NS", name: "Reliance Industries" },
-      { symbol: "TCS.NS", name: "Tata Consultancy Services" },
-      { symbol: "HDFCBANK.NS", name: "HDFC Bank" },
-      { symbol: "INFY.NS", name: "Infosys Limited" },
-      { symbol: "ICICIBANK.NS", name: "ICICI Bank" },
-      { symbol: "HINDUNILVR.NS", name: "Hindustan Unilever" },
-      { symbol: "SBIN.NS", name: "State Bank of India" },
-      { symbol: "KOTAKBANK.NS", name: "Kotak Mahindra Bank" },
+      // Rebranded default watchlist for US market symbols.
+      { symbol: "AAPL", name: "Apple Inc." },
+      { symbol: "MSFT", name: "Microsoft Corp." },
+      { symbol: "NVDA", name: "NVIDIA Corp." },
+      { symbol: "JPM", name: "JPMorgan Chase & Co." },
+      { symbol: "BAC", name: "Bank of America Corp." },
+      { symbol: "KO", name: "Coca-Cola Co." },
+      { symbol: "GS", name: "Goldman Sachs Group Inc." },
+      { symbol: "V", name: "Visa Inc." },
     ];
 
     const watchlistDocs = defaultWatchlist.map(item => ({

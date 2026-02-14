@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import { formatUSD } from "../utils/formatters";
+
 const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:3002";
 
 const Orders = () => {
@@ -12,8 +14,8 @@ const Orders = () => {
       try {
         const response = await axios.get(`${backendUrl}/orders`, {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`
-          }
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         });
         setOrders(response.data);
       } catch (error) {
@@ -26,7 +28,6 @@ const Orders = () => {
     fetchOrders();
   }, []);
 
-  // Helper function to get status styling
   const getStatusStyle = (status) => {
     const baseStyle = {
       padding: "2px 8px",
@@ -39,7 +40,7 @@ const Orders = () => {
     };
 
     switch (status) {
-      case "COMPLETED":
+      case "EXECUTED":
         return {
           ...baseStyle,
           color: "#28a745",
@@ -83,7 +84,7 @@ const Orders = () => {
         <p>Loading orders...</p>
       ) : orders.length === 0 ? (
         <div className="no-orders">
-          <p>You haven't placed any orders today</p>
+          <p>You have not placed any orders today</p>
           <Link to="/" className="btn">
             Get started
           </Link>
@@ -97,7 +98,8 @@ const Orders = () => {
                 <th>Stock</th>
                 <th>Qty</th>
                 <th>Price</th>
-                <th>Type</th>
+                <th>Side</th>
+                <th>Order Type</th>
                 <th>Status</th>
                 <th>Time</th>
               </tr>
@@ -107,7 +109,7 @@ const Orders = () => {
                 <tr key={index}>
                   <td>{order.name}</td>
                   <td>{order.qty}</td>
-                  <td>₹{order.price}</td>
+                  <td>{formatUSD(order.price)}</td>
                   <td>
                     <span
                       style={{
@@ -116,7 +118,8 @@ const Orders = () => {
                         fontWeight: "500",
                         fontSize: "0.85rem",
                         color: order.mode === "BUY" ? "green" : "red",
-                        backgroundColor: order.mode === "BUY" ? "rgba(0, 128, 0, 0.1)" : "rgba(255, 0, 0, 0.1)",
+                        backgroundColor:
+                          order.mode === "BUY" ? "rgba(0, 128, 0, 0.1)" : "rgba(255, 0, 0, 0.1)",
                         border: `1px solid ${order.mode === "BUY" ? "green" : "red"}`,
                         display: "inline-block",
                         width: "50px",
@@ -126,17 +129,16 @@ const Orders = () => {
                       {order.mode}
                     </span>
                   </td>
+                  <td>{order.type || "MARKET"}</td>
                   <td>
-                    <span style={getStatusStyle(order.status)}>
-                      {order.status || "COMPLETED"}
-                    </span>
+                    <span style={getStatusStyle(order.status)}>{order.status || "EXECUTED"}</span>
                   </td>
                   <td>
                     {order.timestamp
                       ? new Date(order.timestamp).toLocaleString(undefined, {
-                        dateStyle: "medium",
-                        timeStyle: "short",
-                      })
+                          dateStyle: "medium",
+                          timeStyle: "short",
+                        })
                       : "No Time"}
                   </td>
                 </tr>

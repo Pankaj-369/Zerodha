@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import Menu from "./Menu";
+import { formatUSD } from "../utils/formatters";
 const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:3002";
 
 const DEFAULT_INDEX = { value: 0, change: 0 };
 
 export default function TopBar() {
-  const [nifty, setNifty] = useState(DEFAULT_INDEX);
-  const [sensex, setSensex] = useState(DEFAULT_INDEX);
+  const [sp500, setSp500] = useState(DEFAULT_INDEX);
+  const [dowJones, setDowJones] = useState(DEFAULT_INDEX);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -18,12 +19,12 @@ export default function TopBar() {
           throw new Error(data?.error || "Failed to fetch indices");
         }
 
-        setNifty(data?.nifty || DEFAULT_INDEX);
-        setSensex(data?.sensex || DEFAULT_INDEX);
+        setSp500(data?.sp500 || data?.nifty || DEFAULT_INDEX);
+        setDowJones(data?.dowJones || data?.sensex || DEFAULT_INDEX);
       } catch (err) {
         console.error("Frontend Fetch Error:", err);
-        setNifty(DEFAULT_INDEX);
-        setSensex(DEFAULT_INDEX);
+        setSp500(DEFAULT_INDEX);
+        setDowJones(DEFAULT_INDEX);
       }
     };
 
@@ -37,7 +38,9 @@ export default function TopBar() {
     return (
       <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
         <span style={{ fontWeight: "500", fontSize: "14px", marginRight: "4px", color: "#666" }}>{name}</span>
-        <span style={{ marginRight: "4px", fontSize: "16px", color: safeChange >= 0 ? "green" : "red" }}>{safeValue.toFixed(2)}</span>
+        <span style={{ marginRight: "4px", fontSize: "16px", color: safeChange >= 0 ? "green" : "red" }}>
+          {formatUSD(safeValue)}
+        </span>
         <span style={{ color: safeChange >= 0 ? "green" : "red", fontSize: "12px" }}>
           {safeChange >= 0 ? "+" : "-"} {Math.abs(safeChange).toFixed(2)}%
         </span>
@@ -58,8 +61,8 @@ export default function TopBar() {
       }}
     >
       <div style={{ display: "flex", gap: "40px" }}>
-        {renderIndex("NIFTY 50", nifty)}
-        {renderIndex("SENSEX", sensex)}
+        {renderIndex("S&P 500", sp500)}
+        {renderIndex("Dow Jones", dowJones)}
       </div>
       <Menu />
     </div>
