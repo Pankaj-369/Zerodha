@@ -3,10 +3,14 @@ const { PositionsModel } = require("./model/PositionsModel");
 const { HoldingsModel } = require("./model/HoldingsModel");
 const { UsersModel } = require("./model/UsersModel");
 const { fetchQuote, mapFinnhubQuote } = require("./utils/finnhubClient");
-const { mapToUsSymbol, mapProductToUs } = require("./utils/symbolMapper");
+const {
+  mapToUsSymbol,
+  mapProductToUs,
+  getSymbolLookupCandidates,
+} = require("./utils/symbolMapper");
 
 cron.schedule(
-  "20 15 * * 1-5", // 2:00 PM IST
+  "0 16 * * 1-5", // 4:00 PM US/Eastern
   async () => {
     console.log("Starting auto square-off...");
 
@@ -46,9 +50,10 @@ cron.schedule(
           console.log(`Day Order squared off: ${mappedSymbol}, qty: ${qty}`);
         } else if (normalizedProduct === "GTC") {
           // GTC positions are moved to holdings.
+          const symbolCandidates = getSymbolLookupCandidates(mappedSymbol);
           const existingHolding = await HoldingsModel.findOne({
             userId: pos.userId,
-            symbol: mappedSymbol,
+            symbol: { $in: symbolCandidates },
           });
 
           if (existingHolding) {
@@ -59,6 +64,7 @@ cron.schedule(
 
             existingHolding.qty = totalQty;
             existingHolding.avgBuyprice = avgBuyPrice;
+            existingHolding.symbol = mappedSymbol;
             await existingHolding.save();
 
             console.log(
@@ -86,6 +92,6 @@ cron.schedule(
     }
   },
   {
-    timezone: "Asia/Kolkata",
+    timezone: "America/New_York",
   }
 );

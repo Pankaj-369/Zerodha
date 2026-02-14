@@ -601,7 +601,7 @@ hr {
   justify-content: space-around;
 }
 
-.nifty {
+.index-primary {
   flex-basis: 40%;
   display: flex;
   align-items: center;
@@ -609,15 +609,15 @@ hr {
   z-index: -2;
 }
 
-.sensex {
+.index-secondary {
   flex-basis: 40%;
   display: flex;
   align-items: center;
   justify-content: space-evenly;
 }
 
-.nifty > *,
-.sensex > * {
+.index-primary > *,
+.index-secondary > * {
   margin-right: 8px;
 }
 

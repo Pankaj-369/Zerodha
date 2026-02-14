@@ -69,8 +69,8 @@ app.get("/indices", async (req, res) => {
   try {
     // Using Finnhub Quote API for index snapshots.
     const [sp500Raw, dowRaw] = await Promise.all([
-      fetchQuote("^GSPC"),
-      fetchQuote("^DJI"),
+      fetchQuote("SPY"),
+      fetchQuote("DIA"),
     ]);
 
     const sp500 = mapFinnhubQuote(sp500Raw);
@@ -87,17 +87,11 @@ app.get("/indices", async (req, res) => {
       },
     };
 
-    // Keep old keys for compatibility with existing clients.
-    response.nifty = response.sp500;
-    response.sensex = response.dowJones;
-
     return res.json(response);
   } catch (error) {
     console.error("Finnhub API error:", error?.message || error);
     return res.json({
       ...DEFAULT_INDICES,
-      nifty: DEFAULT_INDICES.sp500,
-      sensex: DEFAULT_INDICES.dowJones,
       sourceError: "indices_unavailable",
     });
   }

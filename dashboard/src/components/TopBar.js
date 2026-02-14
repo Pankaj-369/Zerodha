@@ -19,8 +19,8 @@ export default function TopBar() {
           throw new Error(data?.error || "Failed to fetch indices");
         }
 
-        setSp500(data?.sp500 || data?.nifty || DEFAULT_INDEX);
-        setDowJones(data?.dowJones || data?.sensex || DEFAULT_INDEX);
+        setSp500(data?.sp500 || DEFAULT_INDEX);
+        setDowJones(data?.dowJones || DEFAULT_INDEX);
       } catch (err) {
         console.error("Frontend Fetch Error:", err);
         setSp500(DEFAULT_INDEX);
