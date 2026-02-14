@@ -63,6 +63,7 @@ const BuyActionWindow = ({ uid, currentPrice }) => {
             : "Limit order placed successfully!"
         );
         generalContext.closeBuyWindow();
+        window.location.reload();
       } else {
         alert(res.data.message || "Failed to place order.");
       }
