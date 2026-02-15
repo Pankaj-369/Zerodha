@@ -38,3 +38,9 @@
 .auth-container form button:hover {
   background-color: #264c7c;
 }
+
+.auth-container form .guest-login-btn {
+  width: 70%;
+  margin: 0.75rem auto 0;
+  display: block;
+}

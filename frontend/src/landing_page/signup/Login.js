@@ -58,7 +58,7 @@ const Login = () => {
           required
         />
         <button type="submit">Login</button>
-        <button type="button" onClick={handleGuestLogin}>
+        <button type="button" onClick={handleGuestLogin} className="guest-login-btn">
           Continue as Guest
         </button>
       </form>
