@@ -31,9 +31,9 @@ function Team() {
           </p>
           <p >
             Connect on 
-            <a href="#"  style={{textDecoration: "none"}}> Homepage</a>/
-            <a href="#"  style={{textDecoration: "none"}}>TradingQnA</a>/
-            <a href="#"  style={{textDecoration: "none"}}>Twitter</a>
+            <a href="/about"  style={{textDecoration: "none"}}> Homepage</a>/
+            <a href="/support"  style={{textDecoration: "none"}}>TradingQnA</a>/
+            <a href="/about"  style={{textDecoration: "none"}}>Twitter</a>
           </p>
         </div>
       </div>

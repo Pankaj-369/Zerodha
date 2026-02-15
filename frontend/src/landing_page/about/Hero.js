@@ -41,7 +41,7 @@ function Hero() {
             </p>
             <p>
               {" "}
-              <a href="#" style={{textDecoration:"none"}}>Rainmatter</a>,
+              <a href="/about" style={{textDecoration:"none"}}>Rainmatter</a>,
                our fintech fund and incubator, has
               invested in several fintech startups with the goal of growing the
               Indian capital markets.{" "}
