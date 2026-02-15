@@ -15,10 +15,20 @@ const LEGACY_TO_US_SYMBOL = {
   AXISBANK: "GS",
   "ICICIBANK.NS": "V",
   ICICIBANK: "V",
+  HDB: "JPM",
   "HINDUNILVR.NS": "PG",
   HINDUNILVR: "PG",
   "KOTAKBANK.NS": "C",
   KOTAKBANK: "C",
+  LT: "CAT",
+  "LT.NS": "CAT",
+  MARUTI: "TM",
+  "MARUTI.NS": "TM",
+  ZEEL: "DIS",
+  "ZEEL.NS": "DIS",
+  IRFC: "BAC",
+  "IRFC.NS": "BAC",
+  "YHA.F": "SPY",
   WIPRO: "ORCL",
   "WIPRO.NS": "ORCL",
   ONGC: "XOM",
@@ -53,6 +63,10 @@ const US_SYMBOL_TO_COMPANY = {
   V: "Visa Inc.",
   PG: "Procter & Gamble Co.",
   C: "Citigroup Inc.",
+  CAT: "Caterpillar Inc.",
+  TM: "Toyota Motor Corp.",
+  DIS: "Walt Disney Co.",
+  SPY: "SPDR S&P 500 ETF Trust",
   ORCL: "Oracle Corp.",
   XOM: "Exxon Mobil Corp.",
   AMD: "Advanced Micro Devices Inc.",
@@ -83,8 +97,8 @@ function mapToUsSymbol(symbol) {
   if (!normalized) return "";
   if (LEGACY_TO_US_SYMBOL[normalized]) return LEGACY_TO_US_SYMBOL[normalized];
 
-  // Handle generic NSE/BSE suffixes when explicit key is not present.
-  if (normalized.endsWith(".NS") || normalized.endsWith(".BO")) {
+  // Handle generic exchange suffixes when explicit key is not present.
+  if (normalized.endsWith(".NS") || normalized.endsWith(".BO") || normalized.endsWith(".F")) {
     const base = normalized.split(".")[0];
     return LEGACY_TO_US_SYMBOL[base] || base;
   }

@@ -7,6 +7,15 @@ const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:3002";
+  const baseUrl = process.env.REACT_APP_BASE_URL || "http://localhost:3001";
+
+  const redirectToDashboard = (payload) => {
+    localStorage.setItem("token", payload.token);
+    localStorage.setItem("user", JSON.stringify(payload.user));
+    window.location.href = `${baseUrl}/?token=${payload.token}&user=${encodeURIComponent(
+      JSON.stringify(payload.user)
+    )}`;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -15,15 +24,18 @@ const Login = () => {
         username,
         password,
       });
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("user", JSON.stringify(res.data.user)); 
-      
-     const baseUrl = process.env.REACT_APP_BASE_URL || 'http://localhost:3001';
-window.location.href = `${baseUrl}/?token=${res.data.token}&user=${encodeURIComponent(JSON.stringify(res.data.user))}`;
-
+      redirectToDashboard(res.data);
     } catch (err) {
-      alert("Login failed: " + (err.response?.data?.msg || err.message));
-      console.log(username,password);
+      alert("Login failed: " + (err.response?.data?.message || err.message));
+    }
+  };
+
+  const handleGuestLogin = async () => {
+    try {
+      const res = await axios.post(`${backendUrl}/login/guest`);
+      redirectToDashboard(res.data);
+    } catch (err) {
+      alert("Guest login failed: " + (err.response?.data?.message || err.message));
     }
   };
 
@@ -46,6 +58,9 @@ window.location.href = `${baseUrl}/?token=${res.data.token}&user=${encodeURIComp
           required
         />
         <button type="submit">Login</button>
+        <button type="button" onClick={handleGuestLogin}>
+          Continue as Guest
+        </button>
       </form>
     </div>
   );
