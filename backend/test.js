@@ -1,3 +1,4 @@
+require("dotenv").config();
 const { fetchQuote, mapFinnhubQuote } = require("./utils/finnhubClient");
 
 
