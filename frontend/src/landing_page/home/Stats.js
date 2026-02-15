@@ -32,7 +32,7 @@ function Stats() {
           </p>
         </div>
         <div className="col-6 p-5 ">
-          <img src="media/images/ecosystem.png" style={{width:"120%"}}/>
+          <img src="media/images/ecosystem.png" alt="" style={{width:"120%"}}/>
             <div className="text-center" >
         <a href="" className="mx-5" style={{textDecoration:"none"}}>Explore our products <i class="fa-solid fa-arrow-right"></i></a>
         <a href=""  style={{textDecoration:"none"}}>Try Kite demo <i class="fa-solid fa-arrow-right"></i></a>
@@ -40,7 +40,7 @@ function Stats() {
         </div >
       
         <div style={{ display: "flex", justifyContent: "center" }}>
-            <img src="media/images/pressLogos.png" style={{ width:"60%"}}/>
+            <img src="media/images/pressLogos.png" alt="" style={{ width:"60%"}}/>
             </div>
       </div>
     </div>
