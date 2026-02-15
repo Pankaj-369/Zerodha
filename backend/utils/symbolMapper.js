@@ -19,6 +19,27 @@ const LEGACY_TO_US_SYMBOL = {
   HINDUNILVR: "PG",
   "KOTAKBANK.NS": "C",
   KOTAKBANK: "C",
+  WIPRO: "ORCL",
+  "WIPRO.NS": "ORCL",
+  ONGC: "XOM",
+  "ONGC.NS": "XOM",
+  KPITTECH: "AMD",
+  "KPITTECH.NS": "AMD",
+  QUICKHEAL: "CRWD",
+  "QUICKHEAL.NS": "CRWD",
+  "M&M": "TSLA",
+  "M&M.NS": "TSLA",
+  HUL: "PG",
+  "HUL.NS": "PG",
+  BHARTIARTL: "VZ",
+  "BHARTIARTL.NS": "VZ",
+  TATAPOWER: "NEE",
+  "TATAPOWER.NS": "NEE",
+  SGBMAY29: "GLD",
+  "EVEREADY.NS": "WMT",
+  EVEREADY: "WMT",
+  JUBLFOOD: "MCD",
+  "JUBLFOOD.NS": "MCD",
 };
 
 const US_SYMBOL_TO_COMPANY = {
@@ -32,6 +53,16 @@ const US_SYMBOL_TO_COMPANY = {
   V: "Visa Inc.",
   PG: "Procter & Gamble Co.",
   C: "Citigroup Inc.",
+  ORCL: "Oracle Corp.",
+  XOM: "Exxon Mobil Corp.",
+  AMD: "Advanced Micro Devices Inc.",
+  CRWD: "CrowdStrike Holdings Inc.",
+  TSLA: "Tesla Inc.",
+  VZ: "Verizon Communications Inc.",
+  NEE: "NextEra Energy Inc.",
+  GLD: "SPDR Gold Shares",
+  WMT: "Walmart Inc.",
+  MCD: "McDonald's Corp.",
 };
 
 const US_TO_LEGACY_SYMBOL = Object.entries(LEGACY_TO_US_SYMBOL).reduce(
@@ -50,7 +81,15 @@ function normalizeSymbol(symbol) {
 function mapToUsSymbol(symbol) {
   const normalized = normalizeSymbol(symbol);
   if (!normalized) return "";
-  return LEGACY_TO_US_SYMBOL[normalized] || normalized;
+  if (LEGACY_TO_US_SYMBOL[normalized]) return LEGACY_TO_US_SYMBOL[normalized];
+
+  // Handle generic NSE/BSE suffixes when explicit key is not present.
+  if (normalized.endsWith(".NS") || normalized.endsWith(".BO")) {
+    const base = normalized.split(".")[0];
+    return LEGACY_TO_US_SYMBOL[base] || base;
+  }
+
+  return normalized;
 }
 
 function getSymbolLookupCandidates(symbol) {

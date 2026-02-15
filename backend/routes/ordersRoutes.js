@@ -12,13 +12,24 @@ const {
   mapToUsSymbol,
   getSymbolLookupCandidates,
   mapProductToUs,
+  getCompanyName,
 } = require("../utils/symbolMapper");
 
 
 router.get("/", verifyToken, async (req, res) => {
   try {
     const orders = await OrdersModel.find({ userId: req.user.id });
-    res.json(orders);
+    // Normalize legacy order symbols for consistent US-market UI display.
+    const normalizedOrders = orders.map((order) => {
+      const mappedSymbol = mapToUsSymbol(order.name);
+      return {
+        ...order.toObject(),
+        name: mappedSymbol,
+        displayName: getCompanyName(mappedSymbol, mappedSymbol),
+      };
+    });
+
+    res.json(normalizedOrders);
   } catch (err) {
     console.error("Error fetching orders:", err);
     res.status(500).json({ success: false, message: "Error fetching orders" });

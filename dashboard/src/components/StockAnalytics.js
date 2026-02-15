@@ -18,14 +18,20 @@ const StockAnalytics = () => {
   const { symbol } = useParams();
   const navigate = useNavigate();
   const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [interval, setInterval] = useState("1d");
   const [range, setRange] = useState("1mo");
 
   useEffect(() => {
+    setLoading(true);
     axios
       .get(`${backendUrl}/history/${symbol}?range=${range}&interval=${interval}`)
-      .then((res) => setData(res.data))
-      .catch((err) => console.error("Chart data fetch failed", err));
+      .then((res) => setData(Array.isArray(res.data) ? res.data : []))
+      .catch((err) => {
+        console.error("Chart data fetch failed", err);
+        setData([]);
+      })
+      .finally(() => setLoading(false));
   }, [symbol, range, interval]);
 
   return (
@@ -56,6 +62,12 @@ const StockAnalytics = () => {
         </select>
       </span>
       <h2>{symbol} Price Chart</h2>
+      {loading && <p>Loading chart...</p>}
+      {!loading && data.length === 0 && (
+        <p style={{ color: "#666", marginBottom: 12 }}>
+          No historical candles available for this symbol right now.
+        </p>
+      )}
       <ResponsiveContainer width="100%" height={400}>
         <LineChart data={data}>
           <XAxis dataKey="date" tick={{ fontSize: 12 }} />

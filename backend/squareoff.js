@@ -59,11 +59,11 @@ cron.schedule(
           if (existingHolding) {
             const totalQty = existingHolding.qty + qty;
             const totalCost =
-              existingHolding.avgBuyprice * existingHolding.qty + buyPrice * qty;
+              existingHolding.avgBuyPrice * existingHolding.qty + buyPrice * qty;
             const avgBuyPrice = totalCost / totalQty;
 
             existingHolding.qty = totalQty;
-            existingHolding.avgBuyprice = avgBuyPrice;
+            existingHolding.avgBuyPrice = avgBuyPrice;
             existingHolding.symbol = mappedSymbol;
             await existingHolding.save();
 
