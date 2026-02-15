@@ -60,6 +60,10 @@ app.use("/positions", positionsRoutes);
 app.use("/watchlist", watchlistRoutes);
 app.use("/api/stock", stockRoutes);
 
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "ok" });
+});
+
 const DEFAULT_INDICES = {
   sp500: { value: 0, change: 0 },
   dowJones: { value: 0, change: 0 },
